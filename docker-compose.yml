@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./data:/app/data:z
-    environment:
+    #environment:
       # - DATA_DIR=/app/data
       # - IMAGE_BASE_URL=
     networks:
