@@ -1,0 +1,51 @@
+# Go cache and build outputs
+.go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+server
+cpkkuview
+main
+
+# Frontend dependencies and builds
+node_modules
+frontend/node_modules
+dist
+frontend/dist
+bin/
+
+# SQLite databases and data folder
+*.db
+*.sqlite
+*.sqlite3
+exams.db
+data
+
+# Environments and logs
+.env
+.env.local
+.env.*.local
+*.log
+
+# Editor & OS files
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Git
+.git
+.gitignore
+
+# Project-specific / Backups
+playground
+public
+oldpublic
+original_exam_table

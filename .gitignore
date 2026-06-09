@@ -1,0 +1,40 @@
+# Go
+.go/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+server
+cpkkuview
+main
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+
+# SQLite databases and data folder
+*.db
+*.sqlite
+*.sqlite3
+exams.db
+data/
+
+# Environments and Logs
+.env
+.env.local
+.env.*.local
+*.log
+
+# Editor and OS files
+.idea/
+.DS_Store
+Thumbs.db
+
+# Project-specific / Backups
+playground/
+public/
+oldpublic/
+original_exam_table/

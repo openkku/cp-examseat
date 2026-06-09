@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <script>
+    if (
+      localStorage.getItem('theme') === 'dark' ||
+      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    ) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+  <meta property="og:title" content="College of Computing KKU Exam Seat Lookup">
+  <meta property="og:description" content="ค้นหาห้องสอบวิทยาลัยคอมจะไม่ลําบากอีกต่อไป">
+  <meta property="og:url" content="https://cp.0y.lv">
+  <meta property="og:type" content="website">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>College of Computing KKU Exam Seat Lookup</title>
+
+  <link rel="preconnect" href="https://fonts.bunny.net">
+  <link href="https://fonts.bunny.net/css?family=prompt:500|sarabun:700i" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>
