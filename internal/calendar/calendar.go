@@ -73,6 +73,11 @@ func Generate(seats []base.Seats) ([]byte, error) {
 	}
 
 	// Create calendar
+	calName := "CP KKU Exam Seats"
+	if len(seats) > 0 && seats[0].StudentID != "" {
+		calName = fmt.Sprintf("CP KKU Exam Seats (%s)", seats[0].StudentID)
+	}
+	calOpts = append(calOpts, ikalendar.WithName(calName), ikalendar.WithXWRCalName(calName))
 	cal, err := ikalendar.NewCalendar(calOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("error creating calendar: %w", err)

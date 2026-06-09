@@ -18,8 +18,8 @@ github.com/mattn/go-isatty v0.0.22 h1:j8l17JJ9i6VGPUFUYoTUKPSgKe/83EYU2zBC7YNKMw
 github.com/mattn/go-isatty v0.0.22/go.mod h1:ZXfXG4SQHsB/w3ZeOYbR0PrPwLy+n6xiMrJlRFqopa4=
 github.com/maypok86/otter/v2 v2.3.0 h1:8H8AVVFUSzJwIegKwv1uF5aGitTY+AIrtktg7OcLs8w=
 github.com/maypok86/otter/v2 v2.3.0/go.mod h1:XgIdlpmL6jYz882/CAx1E4C1ukfgDKSaw4mWq59+7l8=
-github.com/minoplhy/ikalendar v0.1.1 h1:xvP9E2rrRpXaluZ1wHhIfXd2qz6bpMTvJ2GcpusW4rI=
-github.com/minoplhy/ikalendar v0.1.1/go.mod h1:ZpYhFC28ISQ2eksAxy0+VgCNoaL0BsgqiWDdqcjh2W8=
+github.com/minoplhy/ikalendar v0.1.2 h1:+oqLBFctGbE/YosT+hH1fFp4YGVqGILs5r0HY0nHdG8=
+github.com/minoplhy/ikalendar v0.1.2/go.mod h1:ZpYhFC28ISQ2eksAxy0+VgCNoaL0BsgqiWDdqcjh2W8=
 github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOFAw7w=
 github.com/ncruces/go-strftime v1.0.0/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

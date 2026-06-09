@@ -6,7 +6,7 @@ require (
 	github.com/andybalholm/brotli v1.2.1
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/klauspost/compress v1.18.6
-	github.com/minoplhy/ikalendar v0.1.1
+	github.com/minoplhy/ikalendar v0.1.2
 	github.com/xuri/excelize/v2 v2.10.1
 	modernc.org/sqlite v1.52.0
 )
