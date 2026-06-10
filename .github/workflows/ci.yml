@@ -38,9 +38,10 @@ jobs:
 
       - name: Run Go Tests
         run: |
-          # Run tests and save logs
-          go test -v ./... > go-test.log
-          EXIT_CODE=$?
+          # Run tests, stream to console, and save logs
+          set -o pipefail
+          EXIT_CODE=0
+          go test -v ./... | tee go-test.log || EXIT_CODE=$?
           
           # Parse results
           PASSED_PKGS=$(grep -E '^ok[[:space:]]+' go-test.log | wc -l)
