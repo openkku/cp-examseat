@@ -60,7 +60,7 @@ export const StatsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-slate-50/50 dark:bg-slate-950/50">
+      <div className="h-full w-full flex items-center justify-center bg-slate-50/50 dark:bg-slate-950/50">
         <div className="flex flex-col items-center text-blue-600 dark:text-blue-400 font-bold animate-pulse gap-2.5">
           <div className="w-8 h-8 border-4 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin"></div>
           <span className="text-sm uppercase tracking-wider">กำลังโหลดข้อมูลสถิติ...</span>
@@ -71,7 +71,7 @@ export const StatsPage: React.FC = () => {
 
   if (!data || !currentStats) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-950">
+      <div className="h-full w-full flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-950">
         <div className="bg-white dark:bg-slate-900 border border-rose-100 dark:border-rose-950/40 p-8 rounded-2xl shadow-sm dark:shadow-none text-center max-w-sm w-full">
           <span className="text-4xl mb-3 block">⚠️</span>
           <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg mb-1">เกิดข้อผิดพลาดในการโหลดสถิติ</h3>
@@ -85,7 +85,7 @@ export const StatsPage: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-slate-50/30 dark:bg-slate-950/20 font-sans pb-24 overflow-y-auto transition-colors">
+    <div className="h-full w-full bg-slate-50/30 dark:bg-slate-950/20 font-sans pb-24 overflow-y-auto transition-colors">
       {/* FILTER STICKY TOP ROW */}
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-850 sticky top-0 z-20 shadow-sm dark:shadow-none px-6 py-4 transition-colors">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
