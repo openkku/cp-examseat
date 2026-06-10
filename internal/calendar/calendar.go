@@ -78,6 +78,8 @@ func Generate(seats []base.Seats) ([]byte, error) {
 		calName = fmt.Sprintf("CP KKU Exam Seats (%s)", seats[0].StudentID)
 	}
 	calOpts = append(calOpts, ikalendar.WithName(calName), ikalendar.WithXWRCalName(calName))
+	calOpts = append(calOpts, ikalendar.WithRefreshInterval(ikalendar.DURATION{Hours: 12}))
+
 	cal, err := ikalendar.NewCalendar(calOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("error creating calendar: %w", err)
