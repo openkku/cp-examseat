@@ -13,6 +13,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install openpyxl
+
+      - name: Create Dummy Frontend Dist
+        run: |
+          mkdir -p frontend/dist
+          touch frontend/dist/index.html
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -20,7 +35,36 @@ jobs:
           cache: true
 
       - name: Run Go Tests
-        run: go test -v ./...
+        run: |
+          # Run tests and save logs
+          go test -v ./... > go-test.log
+          EXIT_CODE=$?
+          
+          # Parse results
+          PASSED_PKGS=$(grep -E '^ok[[:space:]]+' go-test.log | wc -l)
+          FAILED_PKGS=$(grep -E '^FAIL[[:space:]]+' go-test.log | wc -l)
+          TOTAL_PKGS=$((PASSED_PKGS + FAILED_PKGS))
+          
+          # Write Markdown summary
+          echo "### Go Test Report 🧪" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Summary" >> $GITHUB_STEP_SUMMARY
+          if [ "$FAILED_PKGS" -eq 0 ]; then
+            echo "- **Packages**: ✅ $PASSED_PKGS passed · $TOTAL_PKGS total" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Packages**: ❌ $PASSED_PKGS passed, $FAILED_PKGS failed · $TOTAL_PKGS total" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Collapsible detailed logs
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>View Full Go Test Logs</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+          cat go-test.log >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          
+          exit $EXIT_CODE
 
   frontend-tests:
     name: Frontend Tests (React)
@@ -42,4 +86,35 @@ jobs:
 
       - name: Run Frontend Tests
         working-directory: frontend
-        run: npm run test -- --run
+        run: |
+          # Run tests and save logs
+          npm run test -- --run > vitest.log
+          EXIT_CODE=$?
+          
+          # Parse files and tests stats
+          FILES_SUMMARY=$(grep -E 'Test Files' vitest.log | sed -E 's/.*Test Files[[:space:]]+//' | tr -d '\r')
+          TESTS_SUMMARY=$(grep -E 'Tests' vitest.log | sed -E 's/.*Tests[[:space:]]+//' | tr -d '\r')
+          HAS_FAILURES=$(grep -E 'failed' vitest.log | wc -l)
+          
+          # Write Markdown summary
+          echo "### Vitest Test Report 🧪" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Summary" >> $GITHUB_STEP_SUMMARY
+          if [ "$HAS_FAILURES" -eq 0 ]; then
+            echo "- **Test Files**: ✅ $FILES_SUMMARY" >> $GITHUB_STEP_SUMMARY
+            echo "- **Test Results**: ✅ $TESTS_SUMMARY" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Test Files**: ❌ $FILES_SUMMARY" >> $GITHUB_STEP_SUMMARY
+            echo "- **Test Results**: ❌ $TESTS_SUMMARY" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Collapsible detailed logs
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>View Full Vitest Logs</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+          cat vitest.log >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          
+          exit $EXIT_CODE
