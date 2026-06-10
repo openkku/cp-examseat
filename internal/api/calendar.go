@@ -8,12 +8,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
 
 func HandleGetCalendarFeed(db database.Database, w http.ResponseWriter, r *http.Request) {
-	id := seater.NormalizeID(chi.URLParam(r, "id"))
+	idParam := chi.URLParam(r, "id")
+	idParam = strings.TrimSuffix(idParam, ".ics")
+	id := seater.NormalizeID(idParam)
 	if id == "" {
 		WriteError(w, "Student ID is required", http.StatusBadRequest)
 		return
@@ -28,6 +31,11 @@ func HandleGetCalendarFeed(db database.Database, w http.ResponseWriter, r *http.
 			return
 		}
 
+		if len(seats) == 0 {
+			WriteNoData(w, "No exam schedules found for this student")
+			return
+		}
+
 		icsBytes, err = calendar.Generate(seats)
 		if err != nil {
 			log.Printf("Error generating calendar: %v", err)
@@ -39,7 +47,7 @@ func HandleGetCalendarFeed(db database.Database, w http.ResponseWriter, r *http.
 	}
 
 	w.Header().Set("Content-Type", "text/calendar; charset=utf-8")
-	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="exams-%s.ics"`, id))
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="exams-%s.ics"`, idParam))
 	w.Header().Set("Cache-Control", "public, max-age=600")
 	w.Write(icsBytes)
 }

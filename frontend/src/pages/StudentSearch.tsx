@@ -173,8 +173,7 @@ export const StudentSearch = () => {
 
   const handleDownloadICal = () => {
     if (!studentId) return;
-    const cleanId = studentId.replace(/-/g, '');
-    window.open(`/api/calendar/${cleanId}.ics`, '_blank');
+    window.open(`/api/calendar/${studentId}.ics`, '_blank');
   };
 
   const handleSubscribeCalendar = () => {
@@ -323,8 +322,8 @@ export const StudentSearch = () => {
                 <button
                   onClick={handleCopyFeed}
                   className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${copiedFeed
-                      ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400'
-                      : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-600 active:scale-[0.98]'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400'
+                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-600 active:scale-[0.98]'
                     }`}
                 >
                   <svg className="w-4 h-4 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

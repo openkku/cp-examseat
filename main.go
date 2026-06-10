@@ -102,7 +102,7 @@ func main() {
 	// ---------------------------------------------------------
 	// API 1.5: Get Calendar Subscription Feed (iCalendar .ics)
 	// ---------------------------------------------------------
-	r.Get("/api/calendar/{id}.ics", func(w http.ResponseWriter, req *http.Request) {
+	r.Get("/api/calendar/{id}", func(w http.ResponseWriter, req *http.Request) {
 		api.HandleGetCalendarFeed(db, w, req)
 	})
 
