@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"cpkkuview/frontend"
 	"cpkkuview/internal/api"
 	"cpkkuview/internal/config"
 	"cpkkuview/internal/database/sqlite"
@@ -9,7 +10,6 @@ import (
 	"cpkkuview/internal/round"
 	"cpkkuview/internal/seater"
 	"cpkkuview/internal/stats"
-	"embed"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -17,9 +17,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"time"
 
@@ -28,9 +26,6 @@ import (
 
 	"cpkkuview/internal/compress"
 )
-
-//go:embed all:frontend/dist
-var frontendDist embed.FS
 
 func main() {
 	var err error
@@ -141,35 +136,13 @@ func main() {
 		http.Error(w, "Image not found", http.StatusNotFound)
 	})
 
-	distFS, err := fs.Sub(frontendDist, "frontend/dist")
+	distFS, err := fs.Sub(frontend.Dist, "dist")
 	if err != nil {
 		log.Fatal("failed to get dist subdirectory:", err)
 	}
-	fsHandler := http.FileServer(http.FS(distFS))
 
 	// SPA Handler
-	r.Get("/*", func(w http.ResponseWriter, req *http.Request) {
-		cleanPath := strings.TrimPrefix(path.Clean(req.URL.Path), "/")
-		if cleanPath == "" {
-			cleanPath = "index.html"
-		}
-
-		file, err := distFS.Open(cleanPath)
-		if err != nil {
-			req.URL.Path = "/"
-			fsHandler.ServeHTTP(w, req)
-			return
-		}
-		stat, err := file.Stat()
-		if err == nil && stat.IsDir() {
-			file.Close()
-			req.URL.Path = "/"
-			fsHandler.ServeHTTP(w, req)
-			return
-		}
-		file.Close()
-		fsHandler.ServeHTTP(w, req)
-	})
+	r.Get("/*", serveSPA(distFS))
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: r,

@@ -37,8 +37,11 @@ COPY . .
 # Copy the React build artifacts so Go can embed them during compilation
 COPY --from=ui-builder /app/frontend/dist ./frontend/dist
 
+# Pre-compress the static assets using Go
+RUN go run cmd/precompress/main.go
+
 # Build the Go binary named 'server'
-RUN CGO_ENABLED=0 GOOS=linux go build -o server .
+RUN CGO_ENABLED=0 GOOS=linux go build -o server ./cmd/server
 
 # ----------------------------
 # Stage 3: Final Production Image
