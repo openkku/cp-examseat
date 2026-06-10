@@ -12,8 +12,8 @@ import (
 var mimeTypes = map[string]string{
 	".html": "text/html; charset=utf-8",
 	".css":  "text/css; charset=utf-8",
-	".js":   "application/javascript",
-	".mjs":  "application/javascript",
+	".js":   "application/javascript; charset=utf-8",
+	".mjs":  "application/javascript; charset=utf-8",
 	".json": "application/json",
 	".svg":  "image/svg+xml",
 	".png":  "image/png",

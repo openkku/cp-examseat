@@ -55,7 +55,7 @@ func TestServeSPA(t *testing.T) {
 			expectedStatus: http.StatusOK,
 			expectedBody:   "console.log('original');",
 			expectedEnc:    "",
-			expectedType:   "application/javascript",
+			expectedType:   "application/javascript; charset=utf-8",
 			expectedSniff:  "nosniff",
 		},
 		{
@@ -75,7 +75,7 @@ func TestServeSPA(t *testing.T) {
 			expectedStatus: http.StatusOK,
 			expectedBody:   "brotli js",
 			expectedEnc:    "br",
-			expectedType:   "application/javascript",
+			expectedType:   "application/javascript; charset=utf-8",
 			expectedSniff:  "nosniff",
 		},
 		{
