@@ -67,20 +67,33 @@ export const RoomExplorer: React.FC = () => {
     if (hasRun.current) return;
     hasRun.current = true;
 
-    fetch('/api/room').then(res => res.json()).then(setConfigs).catch(console.error);
+    fetch('/api/room')
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch rooms");
+        return res.json();
+      })
+      .then(setConfigs)
+      .catch(console.error);
 
-    fetch('/api/rounds').then(res => res.json()).then((data: RoundOption[]) => {
-      setOptRounds(data || []);
-      if (data && data.length > 0) {
-        const urlRound = searchParams.get('round');
-        const isValidRound = data.some(r => r.id === urlRound);
-        if (urlRound && isValidRound) {
-          setRound(urlRound);
-        } else {
-          setRound(data[0].id);
+    fetch('/api/rounds')
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch rounds");
+        return res.json();
+      })
+      .then((data: RoundOption[]) => {
+        const validRounds = Array.isArray(data) ? data : [];
+        setOptRounds(validRounds);
+        if (validRounds.length > 0) {
+          const urlRound = searchParams.get('round');
+          const isValidRound = validRounds.some(r => r.id === urlRound);
+          if (urlRound && isValidRound) {
+            setRound(urlRound);
+          } else {
+            setRound(validRounds[0].id);
+          }
         }
-      }
-    });
+      })
+      .catch(console.error);
   }, []);
 
   // 2. Round -> Dates Cascade
@@ -89,17 +102,25 @@ export const RoomExplorer: React.FC = () => {
     if (fromSearchResult) return;
 
     fetch(`/api/options?type=dates&round=${encodeURIComponent(round)}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch dates");
+        return res.json();
+      })
       .then(data => {
-        setOptDates(data || []);
+        const validDates = Array.isArray(data) ? data : [];
+        setOptDates(validDates);
         const urlDate = searchParams.get('date');
-        if (urlDate && data.includes(urlDate)) {
+        if (urlDate && validDates.includes(urlDate)) {
           setDate(urlDate);
-        } else if (data && data.length > 0) {
-          setDate(data[0]);
+        } else if (validDates.length > 0) {
+          setDate(validDates[0]);
         } else {
           setDate("");
         }
+      })
+      .catch(() => {
+        setOptDates([]);
+        setDate("");
       });
   }, [round]);
 
@@ -109,9 +130,12 @@ export const RoomExplorer: React.FC = () => {
     if (fromSearchResult) return;
 
     fetch(`/api/options?type=times&round=${round}&date=${encodeURIComponent(date)}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch times");
+        return res.json();
+      })
       .then(data => {
-        const validTimes = data || [];
+        const validTimes = Array.isArray(data) ? data : [];
         setOptTimes(validTimes);
         const urlTime = searchParams.get('time');
         if (urlTime && validTimes.includes(urlTime)) {
@@ -121,6 +145,10 @@ export const RoomExplorer: React.FC = () => {
         } else {
           setTime("");
         }
+      })
+      .catch(() => {
+        setOptTimes([]);
+        setTime("");
       });
   }, [date, round]);
 
@@ -130,9 +158,12 @@ export const RoomExplorer: React.FC = () => {
     if (fromSearchResult) return;
 
     fetch(`/api/options?type=rooms&round=${round}&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch rooms");
+        return res.json();
+      })
       .then(data => {
-        const validRooms = data || [];
+        const validRooms = Array.isArray(data) ? data : [];
         setOptRooms(validRooms);
         const urlRoom = searchParams.get('room');
         if (urlRoom && validRooms.includes(urlRoom)) {
@@ -142,6 +173,10 @@ export const RoomExplorer: React.FC = () => {
         } else {
           setRoom("");
         }
+      })
+      .catch(() => {
+        setOptRooms([]);
+        setRoom("");
       });
   }, [time, date, round]);
 
@@ -157,9 +192,13 @@ export const RoomExplorer: React.FC = () => {
 
     const params = new URLSearchParams({ round, room, date, time });
     fetch(`/api/explore?${params.toString()}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch explore data");
+        return res.json();
+      })
       .then((data: ExamResult[]) => {
-        setScheduleData(data || []);
+        const validData = Array.isArray(data) ? data : [];
+        setScheduleData(validData);
 
         const urlSeat = searchParams.get('seat');
         const isUrlSync =
@@ -168,8 +207,8 @@ export const RoomExplorer: React.FC = () => {
           searchParams.get('time') === time &&
           searchParams.get('room') === room;
 
-        if (urlSeat && isUrlSync && data.length > 0) {
-          const found = data.find(s => s.seat === urlSeat);
+        if (urlSeat && isUrlSync && validData.length > 0) {
+          const found = validData.find(s => s.seat === urlSeat);
           if (found) setSelectedSeat(found);
         }
       })

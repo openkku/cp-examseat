@@ -141,11 +141,15 @@ export const StudentSearch = () => {
 
     // Fetch Rounds
     fetch('/api/rounds')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch rounds");
+        return res.json();
+      })
       .then((data: RoundOption[]) => {
-        if (data && data.length > 0) {
-          setRounds(data);
-          const defaultRoundId = data[0].id;
+        const validRounds = Array.isArray(data) ? data : [];
+        if (validRounds.length > 0) {
+          setRounds(validRounds);
+          const defaultRoundId = validRounds[0].id;
           setSelectedRound(defaultRoundId);
 
           const urlId = searchParams.get('id');
@@ -159,7 +163,10 @@ export const StudentSearch = () => {
 
     // Fetch Stats
     fetch('/api/stats')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch stats");
+        return res.json();
+      })
       .then(setStatsData)
       .catch((err) => console.warn("Could not load stats", err));
   }, [searchParams, performSearch]);

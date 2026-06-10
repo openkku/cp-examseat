@@ -20,7 +20,10 @@ export const StatsPage: React.FC = () => {
 
   useEffect(() => {
     fetch('/api/stats')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch stats");
+        return res.json();
+      })
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));
