@@ -178,16 +178,14 @@ export const StudentSearch = () => {
 
   const handleSubscribeCalendar = () => {
     if (!studentId) return;
-    const cleanId = studentId.replace(/-/g, '');
     const host = window.location.host;
-    const webcalUrl = `webcal://${host}/api/calendar/${cleanId}.ics`;
+    const webcalUrl = `webcal://${host}/api/calendar/${studentId}.ics`;
     window.location.href = webcalUrl;
   };
 
   const handleCopyFeed = () => {
     if (!studentId) return;
-    const cleanId = studentId.replace(/-/g, '');
-    const url = `${window.location.protocol}//${window.location.host}/api/calendar/${cleanId}.ics`;
+    const url = `${window.location.protocol}//${window.location.host}/api/calendar/${studentId}.ics`;
     navigator.clipboard.writeText(url).then(() => {
       setCopiedFeed(true);
       setTimeout(() => setCopiedFeed(false), 2000);
