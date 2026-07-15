@@ -484,7 +484,7 @@ textarea.field-input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 0.35rem;
   border: 2px dashed transparent;
   border-radius: 6px;

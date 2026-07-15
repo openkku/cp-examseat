@@ -384,7 +384,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                             ));
                           }
                           if (item.type === 'obstruction') {
-                            const h = item.count ? item.count * 40 - 6 : 34;
+                            const h = item.height || (item.count ? item.count * 40 - 6 : 34);
                             const w = item.width ? `${item.width}px` : '42px';
                             if (item.transparent)
                               return (

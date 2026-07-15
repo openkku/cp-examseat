@@ -86,6 +86,12 @@ func Init(configPath string) {
 		}
 
 		roomWithLayout["layout"] = roomLayout["layout"]
+		if fl, ok := roomLayout["frontLabel"]; ok {
+			roomWithLayout["frontLabel"] = fl
+		}
+		if bl, ok := roomLayout["backLabel"]; ok {
+			roomWithLayout["backLabel"] = bl
+		}
 		RoomCache[apiName] = roomWithLayout
 
 		loadedCount++
