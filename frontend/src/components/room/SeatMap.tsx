@@ -1,18 +1,9 @@
+// src/components/room/SeatMap.tsx
 import React, { useEffect, useRef, useState, useLayoutEffect, useMemo } from 'react';
-import type { RoomConfig, LayoutItem, ExamResult } from '../types';
-import { parseSeat } from '../utils';
-
-// --- COLOR PALETTE (Responsive light/dark mode) ---
-const PALETTE = [
-  { bg: 'bg-blue-100 dark:bg-blue-950/45', text: 'text-blue-900 dark:text-blue-300', border: 'border-blue-300 dark:border-blue-800' },
-  { bg: 'bg-emerald-100 dark:bg-emerald-950/45', text: 'text-emerald-900 dark:text-emerald-300', border: 'border-emerald-300 dark:border-emerald-800' },
-  { bg: 'bg-amber-100 dark:bg-amber-950/45', text: 'text-amber-900 dark:text-amber-300', border: 'border-amber-300 dark:border-amber-800' },
-  { bg: 'bg-purple-100 dark:bg-purple-950/45', text: 'text-purple-900 dark:text-purple-300', border: 'border-purple-300 dark:border-purple-800' },
-  { bg: 'bg-rose-100 dark:bg-rose-950/45', text: 'text-rose-900 dark:text-rose-300', border: 'border-rose-300 dark:border-rose-800' },
-  { bg: 'bg-cyan-100 dark:bg-cyan-950/45', text: 'text-cyan-900 dark:text-cyan-300', border: 'border-cyan-300 dark:border-cyan-800' },
-  { bg: 'bg-lime-100 dark:bg-lime-950/45', text: 'text-lime-900 dark:text-lime-300', border: 'border-lime-300 dark:border-lime-800' },
-  { bg: 'bg-fuchsia-100 dark:bg-fuchsia-950/45', text: 'text-fuchsia-900 dark:text-fuchsia-300', border: 'border-fuchsia-300 dark:border-fuchsia-800' },
-];
+import type { RoomConfig, LayoutItem, ExamResult } from '../../types';
+import { parseSeat } from '../../utils';
+import { SEAT_PALETTE } from '../../lib/constants';
+import { Plus, Minus, Maximize2, Info } from '../icons';
 
 interface Props {
   config: RoomConfig;
@@ -39,7 +30,7 @@ export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, on
 
   // --- 1. MEMOIZE COLORS ---
   const subjectMap = useMemo(() => {
-    const map: Record<string, { color: typeof PALETTE[0], name: string }> = {};
+    const map: Record<string, { color: typeof SEAT_PALETTE[0], name: string }> = {};
     const entries = Object.values(occupied);
     const uniqueSubjects = Array.from(new Set(entries.map(d => d.subject))).sort();
     
@@ -47,7 +38,7 @@ export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, on
       const representative = entries.find(e => e.subject === subj);
       const name = representative?.subject_name || ""; 
       map[subj] = {
-        color: PALETTE[index % PALETTE.length],
+        color: SEAT_PALETTE[index % SEAT_PALETTE.length],
         name: name
       };
     });
@@ -220,27 +211,27 @@ export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, on
             const studentData = occupied[seatId];
             const isOccupied = !!studentData;
 
-            let colorClass = "bg-white dark:bg-slate-900 text-gray-300 dark:text-slate-600 border-gray-200 dark:border-slate-800"; 
+            let colorClass = "bg-white dark:bg-slate-900 text-gray-300 dark:text-slate-700 border-slate-200 dark:border-slate-800/80"; 
             let subjectInfo = null;
             
             if (isOccupied) {
                 subjectInfo = subjectMap[studentData.subject];
-                const theme = subjectInfo?.color || PALETTE[0];
+                const theme = subjectInfo?.color || SEAT_PALETTE[0];
                 
                 if (isTarget) {
-                    colorClass = "bg-red-600 text-white border-red-700 shadow-lg ring-2 ring-red-400 dark:ring-red-950 z-20";
+                    colorClass = "bg-rose-600 text-white border-rose-700 shadow-md ring-2 ring-rose-450 dark:ring-rose-950 z-20 animate-radar";
                 } else {
                     colorClass = `${theme.bg} ${theme.text} ${theme.border}`;
                 }
             } else if (isTarget) {
-                 colorClass = "bg-red-600 text-white border-red-700 shadow-lg ring-2 ring-red-400 dark:ring-red-950 z-20";
+                 colorClass = "bg-rose-600 text-white border-rose-700 shadow-md ring-2 ring-rose-450 dark:ring-rose-950 z-20 animate-radar";
             }
 
-            let interactiveClass = "hover:scale-105 hover:shadow-md cursor-pointer transition-all duration-200";
+            let interactiveClass = "hover:scale-105 hover:shadow-sm cursor-pointer transition-all duration-200";
             if (highlightedSubject) {
               const matches = isOccupied && studentData.subject === highlightedSubject;
               if (matches) {
-                interactiveClass += " scale-105 z-10 shadow-md ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-slate-900 saturate-100";
+                interactiveClass += " scale-105 z-10 shadow-md ring-2 ring-indigo-500 ring-offset-1 dark:ring-offset-slate-950 saturate-100";
               } else if (isTarget) {
                 interactiveClass += " scale-105 z-20 shadow-lg saturate-100";
               } else {
@@ -258,11 +249,11 @@ export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, on
                 ref={isTarget ? targetRef : undefined}
                 title={tooltip}
                 onClick={(e) => { e.stopPropagation(); if (onSeatClick) onSeatClick(seatId, studentData); }}
-                className={`flex flex-col items-center justify-center rounded border flex-shrink-0 ${colorClass} ${interactiveClass}`}
+                className={`flex flex-col items-center justify-center rounded border flex-shrink-0 font-bold ${colorClass} ${interactiveClass}`}
                 style={{ width: '42px', height: '34px' }}
               >
-                <span className={`text-[9px] leading-none font-bold ${isOccupied ? 'opacity-70' : ''}`}>{seatId}</span>
-                {isOccupied && <span className="text-[9px] font-bold leading-none mt-0.5 truncate max-w-[38px]">{studentData.subject}</span>}
+                <span className={`text-[10px] leading-none ${isOccupied ? 'opacity-70' : ''}`}>{seatId}</span>
+                {isOccupied && <span className="text-[10px] leading-none mt-0.5 truncate max-w-[38px] font-mono">{studentData.subject}</span>}
               </div>
             );
           })}
@@ -270,14 +261,14 @@ export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, on
       );
     }
     
-    // ... (Obstruction/Gap rendering)
+    // Obstruction/Gap rendering
     if (item.type === 'obstruction') {
         const height = item.height || (item.count ? (item.count * 40) - 6 : 34);
         const width = item.width ? `${item.width}px` : '42px';
         if (item.transparent) return <div key={`${colIndex}-${itemIndex}`} style={{ height, width, flexShrink: 0 }} />;
         return (
-          <div key={`${colIndex}-${itemIndex}`} className="rounded flex items-center justify-center text-[10px] text-gray-400 dark:text-slate-400 border border-gray-300 dark:border-slate-800 bg-gray-200 dark:bg-slate-900/60 pattern-stripes writing-vertical shrink-0" style={{ height, width }}>
-            <span className="uppercase tracking-widest">{item.label}</span>
+          <div key={`${colIndex}-${itemIndex}`} className="rounded flex items-center justify-center text-xs text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-800/80 bg-slate-100 dark:bg-slate-900/60 pattern-stripes writing-vertical shrink-0 font-bold" style={{ height, width }}>
+            <span className="uppercase tracking-widest leading-none">{item.label}</span>
           </div>
         );
       }
@@ -289,7 +280,7 @@ export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, on
   };
 
   return (
-    <div className="relative h-full flex flex-col border border-slate-200 dark:border-slate-800 rounded-lg bg-gray-50 dark:bg-slate-950 overflow-hidden select-none touch-none transition-colors">
+    <div className="relative h-full flex flex-col border border-slate-200/50 dark:border-slate-800/80 rounded-2xl bg-slate-50 dark:bg-slate-950 overflow-hidden select-none touch-none transition-colors">
       
       {/* MAP VIEWPORT */}
       <div 
@@ -305,14 +296,14 @@ export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, on
       >
         <div ref={contentRef} className="absolute top-0 left-0 w-max origin-top-left will-change-transform">
             <div className="p-20 md:p-40"> 
-                <div className="w-full text-center text-xs font-bold text-gray-300 dark:text-slate-700 uppercase mb-4 tracking-[0.5em]">{config.frontLabel || "Front"}</div>
+                <div className="w-full text-center text-xs font-bold text-slate-300 dark:text-slate-700 uppercase mb-4 tracking-[0.5em]">{config.frontLabel || "Front"}</div>
                 <div className="flex items-start gap-1.5 mx-auto">
                     {config.layout.map((block, i) => {
                         if (block.type === 'aisle') return <div key={`aisle-${i}`} style={{ width: block.width }} className="shrink-0 h-1" />;
                         if (block.type === 'column') {
                             return (
                                 <div key={`col-${i}`} className="flex flex-col gap-1.5 shrink-0">
-                                    <div className="text-[10px] font-bold text-gray-400 dark:text-slate-600 text-center h-3 flex items-end justify-center">{block.label || ''}</div>
+                                    <div className="text-xs font-bold text-slate-400 dark:text-slate-655 text-center h-3 flex items-end justify-center leading-none">{block.label || ''}</div>
                                     {block.items.map((item, j) => renderItem(item, i, j))}
                                 </div>
                             );
@@ -320,31 +311,34 @@ export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, on
                         return null;
                     })}
                 </div>
-                 <div className="w-full text-center text-xs font-bold text-gray-300 dark:text-slate-700 uppercase mt-4 tracking-[0.5em]">{config.backLabel || "Back"}</div>
+                 <div className="w-full text-center text-xs font-bold text-slate-300 dark:text-slate-700 uppercase mt-4 tracking-[0.5em]">{config.backLabel || "Back"}</div>
             </div>
         </div>
       </div>
 
-      {/* CONTROLS (Lower Z-Index to allow sidebar to cover) */}
-      <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-10">
-        <button onClick={() => { transform.current.k = Math.min(transform.current.k + 0.5, 4); updateTransform(); setZoomLevel(transform.current.k); }} className="w-12 h-12 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-full shadow-xl dark:shadow-none text-gray-600 dark:text-slate-300 font-bold hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center text-2xl active:bg-gray-100 dark:active:bg-slate-700 cursor-pointer transition-colors">+</button>
-        <button onClick={() => centerTarget(true)} className="w-12 h-12 bg-blue-600 border border-blue-700 rounded-full shadow-xl text-white font-bold hover:bg-blue-700 flex items-center justify-center active:bg-blue-800 cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+      {/* CONTROLS */}
+      <div className="absolute bottom-20 md:bottom-6 right-6 flex flex-col gap-2 z-10">
+        <button onClick={() => { transform.current.k = Math.min(transform.current.k + 0.5, 4); updateTransform(); setZoomLevel(transform.current.k); }} className="w-11 h-11 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 rounded-full shadow-lg text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center text-xl active:bg-slate-100 dark:active:bg-slate-700 cursor-pointer transition-all active:scale-95">+</button>
+        <button onClick={() => centerTarget(true)} className="w-11 h-11 bg-indigo-600 border border-indigo-700 rounded-full shadow-lg text-white font-bold hover:bg-indigo-700 flex items-center justify-center active:bg-indigo-800 cursor-pointer transition-all active:scale-95">
+            <Maximize2 className="h-4.5 w-4.5" />
         </button>
-        <button onClick={() => { transform.current.k = Math.max(transform.current.k - 0.5, 0.2); updateTransform(); setZoomLevel(transform.current.k); }} className="w-12 h-12 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-full shadow-xl dark:shadow-none text-gray-600 dark:text-slate-300 font-bold hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center text-2xl active:bg-gray-100 dark:active:bg-slate-700 cursor-pointer transition-colors">-</button>
+        <button onClick={() => { transform.current.k = Math.max(transform.current.k - 0.5, 0.2); updateTransform(); setZoomLevel(transform.current.k); }} className="w-11 h-11 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 rounded-full shadow-lg text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center text-xl active:bg-slate-100 dark:active:bg-slate-700 cursor-pointer transition-all active:scale-95">-</button>
       </div>
       
-      {/* LEGEND (Moved to LEFT, Z-Index reduced) */}
+      {/* LEGEND (Floating desktop legend) */}
       {Object.keys(subjectMap).length !== 0 &&
-      <div className="absolute top-4 left-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 rounded p-3 text-xs shadow-lg dark:shadow-none max-h-60 overflow-y-auto max-w-[220px] hidden sm:block z-10 transition-colors">
-          <div className="font-bold text-gray-500 dark:text-slate-400 mb-2 uppercase text-[10px] tracking-wider border-b border-slate-100 dark:border-slate-800 pb-1">Subjects</div>
+      <div className="absolute top-4 left-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur border border-slate-200/50 dark:border-slate-800 rounded-xl p-3.5 text-xs shadow-lg max-h-60 overflow-y-auto max-w-[220px] hidden sm:block z-10 transition-all">
+          <div className="font-extrabold text-slate-400 dark:text-slate-500 mb-2.5 uppercase text-xs tracking-wider border-b border-slate-100 dark:border-slate-800 pb-1 flex items-center gap-1">
+            <Info className="w-3 h-3" />
+            <span>Subjects</span>
+          </div>
           
           {Object.entries(subjectMap).map(([subj, info]) => (
-              <div key={subj} className="flex items-start gap-2 mb-2 last:mb-0">
-                  <div className={`w-3 h-3 rounded ${info.color.bg} ${info.color.border} border flex-shrink-0 mt-0.5`}></div>
-                  <div className="flex flex-col leading-tight">
-                      <span className="text-gray-900 dark:text-slate-200 font-bold font-mono text-[10px]">{subj}</span>
-                      {info.name && <span className="text-gray-500 dark:text-slate-400 text-[10px] truncate max-w-[160px]">{info.name}</span>}
+              <div key={subj} className="flex items-start gap-2.5 mb-2 last:mb-0">
+                  <div className={`w-3.5 h-3.5 rounded-lg ${info.color.bg} ${info.color.border} border flex-shrink-0 mt-0.5`}></div>
+                  <div className="flex flex-col leading-tight min-w-0">
+                      <span className="text-slate-800 dark:text-slate-200 font-bold font-mono text-xs">{subj}</span>
+                      {info.name && <span className="text-slate-400 dark:text-slate-500 text-xs truncate max-w-[140px] font-semibold mt-0.5">{info.name}</span>}
                   </div>
               </div>
           ))}

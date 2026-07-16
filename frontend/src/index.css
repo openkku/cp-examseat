@@ -1,12 +1,38 @@
 @import "tailwindcss";
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Prompt:wght@300;400;500;600;700;800;950&family=JetBrains+Mono:wght@400;500;650;700&display=swap");
+
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* 1. GLOBAL FONT 
-   Makes the numbers and names look sharper 
-*/
+/* 1. GLOBAL DESIGN TOKENS */
 @theme {
-  --font-sans: "Prompt", sans-serif;
+  --font-sans: "Inter", "Prompt", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  /* Aurora Glow Colors */
+  --color-aurora-start: #6366f1;
+  --color-aurora-mid: #06b6d4;
+  --color-aurora-end: #10b981;
+
+  /* Custom Slate colors to make dark mode lighter and deep navy-blueish */
+  --color-slate-50: #fafbfe;
+  --color-slate-100: #f0f3fa;
+  --color-slate-200: #e2e8f5;
+  --color-slate-300: #cbd5eb;
+  --color-slate-350: #a5b4d4;
+  --color-slate-400: #8898d0;
+  --color-slate-455: #7180b5;
+  --color-slate-500: #6475b2;
+  --color-slate-600: #4e5e99;
+  --color-slate-700: #303c6c;
+  --color-slate-800: #1e264c;
+  --color-slate-850: #161c3c;
+  --color-slate-900: #141b35; /* Lighter surface navy */
+  --color-slate-950: #0a0f24; /* Lighter background navy */
+
+  /* Custom smaller typography helper sizing */
+  --text-nano: 0.625rem;   /* 10px */
+  --text-xxs: 0.6875rem;   /* 11px */
 }
 
 html,
@@ -21,11 +47,13 @@ body,
 }
 
 body {
-  background-color: #f3f4f6;
+  background-color: #fafbfe; /* Lavender Mist background */
+  color: #0f172a; /* Ink primary text */
 }
 
 .dark body {
-  background-color: #030712; /* slate-950 */
+  background-color: #0a0f24; /* Deep Space background - updated to be lighter */
+  color: #f1f5f9; /* Snow primary text */
 }
 
 /* 2. OBSTRUCTION STRIPES 
@@ -53,42 +81,121 @@ body {
 /* 4. CUSTOM SCROLLBAR
    Makes scrolling large maps feel more "app-like" and less like a browser window 
 */
-.overflow-auto::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.overflow-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-.overflow-auto::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+.overflow-auto::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track,
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
 }
-.dark .overflow-auto::-webkit-scrollbar-track {
-  background: #1e293b; /* slate-800 */
+.overflow-auto::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb,
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 9999px;
 }
-.overflow-auto::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+.dark .overflow-auto::-webkit-scrollbar-thumb,
+.dark .overflow-y-auto::-webkit-scrollbar-thumb,
+.dark .overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #1e293b;
 }
-.dark .overflow-auto::-webkit-scrollbar-thumb {
-  background: #475569; /* slate-600 */
+.overflow-auto::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover,
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
 }
-.overflow-auto::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-.dark .overflow-auto::-webkit-scrollbar-thumb:hover {
-  background: #64748b; /* slate-500 */
+.dark .overflow-auto::-webkit-scrollbar-thumb:hover,
+.dark .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+.dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #334155;
 }
 
+/* 5. CUSTOM KEYFRAMES & ANIMATIONS */
 @keyframes radar-ping {
-  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
 }
 
 .animate-radar {
   animation: radar-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* 5. LEAFLET DARK THEME
+@keyframes slide-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes grow-up {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.animate-grow-up {
+  animation: grow-up 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Stagger delays for animations */
+.stagger-1 { animation-delay: 60ms; }
+.stagger-2 { animation-delay: 120ms; }
+.stagger-3 { animation-delay: 180ms; }
+.stagger-4 { animation-delay: 240ms; }
+.stagger-5 { animation-delay: 300ms; }
+.stagger-6 { animation-delay: 360ms; }
+
+.staggered-entrance > * {
+  opacity: 0;
+  animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.staggered-entrance > *:nth-child(1) { animation-delay: 60ms; }
+.staggered-entrance > *:nth-child(2) { animation-delay: 120ms; }
+.staggered-entrance > *:nth-child(3) { animation-delay: 180ms; }
+.staggered-entrance > *:nth-child(4) { animation-delay: 240ms; }
+.staggered-entrance > *:nth-child(5) { animation-delay: 300ms; }
+.staggered-entrance > *:nth-child(6) { animation-delay: 360ms; }
+.staggered-entrance > *:nth-child(7) { animation-delay: 420ms; }
+.staggered-entrance > *:nth-child(8) { animation-delay: 480ms; }
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.dark .shimmer {
+  background: linear-gradient(90deg, #0f172a 25%, #1e293b 50%, #0f172a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* 6. LEAFLET DARK THEME
    Applies visual inversion filter in dark mode so the maps look premium and match dark mode
 */
 .dark .leaflet-container {
@@ -97,7 +204,15 @@ body {
 
 .dark .leaflet-popup-content-wrapper,
 .dark .leaflet-popup-tip {
-  background: #1e293b !important;
+  background: #0c1425 !important;
   color: #f8fafc !important;
   box-shadow: 0 3px 14px rgba(0,0,0,0.4) !important;
+}
+
+/* Custom Marker Cluster Styling override */
+.custom-cluster-marker {
+  transition: all 0.2s ease-out;
+}
+.custom-cluster-marker:hover {
+  transform: scale(1.1);
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ExamCard } from '../components/ExamCard';
+import { ExamCard } from '../components/exam/ExamCard';
 import type { ExamResult, RoomConfigMap } from '../types';
 
 describe('ExamCard', () => {
