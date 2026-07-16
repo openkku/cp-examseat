@@ -250,23 +250,23 @@ export const StatsPage: React.FC = () => {
     <div className="h-full w-full bg-[#FAFBFE] dark:bg-[#0A0F24] font-sans pb-24 overflow-y-auto transition-colors relative">
 
       {/* 2. FILTER STICKY TOP ROW (Glassmorphic) */}
-      <div className="bg-white/70 dark:bg-slate-900/70 border-b border-slate-200/50 dark:border-slate-850 sticky top-0 z-20 backdrop-blur-xl px-6 py-4 transition-all duration-300 select-none">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-500 rounded-xl text-white shadow-md shadow-indigo-500/10 shrink-0">
+      <div className="bg-white/70 dark:bg-slate-900/70 border-b border-slate-200/50 dark:border-slate-850 sticky top-0 z-20 backdrop-blur-xl px-4 sm:px-6 py-2.5 sm:py-4 transition-all duration-300 select-none">
+        <div className="max-w-7xl mx-auto flex flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="p-2 bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-500 rounded-xl text-white shadow-md shadow-indigo-500/10 shrink-0 hidden sm:flex">
               <BarChart3 className="w-5 h-5" />
             </div>
-            <div>
-              <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none">
-                แผงควบคุมสถิติ (Statistics Dashboard)
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base md:text-xl lg:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none truncate">
+                แผงควบคุมสถิติ <span className="hidden md:inline">(Statistics Dashboard)</span>
               </h1>
-              <p className="text-xxs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xxs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 hidden sm:block">
                 Overview & System Analytics
               </p>
             </div>
           </div>
 
-          <div className="w-full sm:w-64">
+          <div className="w-36 sm:w-64 shrink-0">
             <Select
               value={selectedView}
               onChange={(e) => setSelectedView(e.target.value)}

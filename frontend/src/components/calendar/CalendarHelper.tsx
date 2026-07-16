@@ -78,23 +78,23 @@ export const CalendarHelper: React.FC<CalendarHelperProps> = ({
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200 relative z-10 overflow-hidden">
         
         {/* Header */}
-        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 dark:border-slate-800/60 flex justify-between items-start">
-          <div className="flex gap-3 items-center">
-            <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-450 shrink-0">
+        <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 dark:border-slate-800/60 flex justify-between items-start gap-3">
+          <div className="flex gap-2.5 items-start min-w-0 flex-1">
+            <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-450 shrink-0 mt-0.5">
               <CalendarIcon className="w-5 h-5" />
             </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-black text-slate-850 dark:text-slate-100 leading-tight">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base sm:text-lg md:text-xl font-black text-slate-850 dark:text-slate-100 leading-tight break-words">
                 วิธีเพิ่มตารางสอบลงปฏิทิน
               </h2>
-              <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-0.5">
+              <p className="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 font-bold mt-1 break-words leading-normal">
                 อัปเดตอัตโนมัติเมื่อกำหนดการสอบมีการเปลี่ยนแปลง
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 transition-colors shrink-0"
             aria-label="ปิดหน้าต่าง"
           >
             <X className="w-5 h-5" />

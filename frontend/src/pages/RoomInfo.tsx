@@ -231,29 +231,40 @@ export const RoomInfo = () => {
       ref={scrollContainerRef}
       className="h-full w-full overflow-y-auto bg-slate-50/30 dark:bg-slate-950/20 relative transition-colors"
     >
-      {/* Sticky Header Bar (Glassmorphic) */}
-      <div className="bg-white/70 dark:bg-slate-900/70 border-b border-slate-200/50 dark:border-slate-850 sticky top-0 z-20 backdrop-blur-xl px-6 py-4 transition-all duration-300 select-none">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-500 rounded-xl text-white shadow-md shadow-indigo-500/10 shrink-0">
+      {/* Sticky Header Bar (Glassmorphic & Compact on Mobile) */}
+      <div className="bg-white/70 dark:bg-slate-900/70 border-b border-slate-200/50 dark:border-slate-850 sticky top-0 z-20 backdrop-blur-xl px-4 sm:px-6 py-2.5 sm:py-4 transition-all duration-300 select-none">
+        <div className="max-w-5xl mx-auto flex flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="p-2 bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-500 rounded-xl text-white shadow-md shadow-indigo-500/10 shrink-0 hidden sm:flex">
               <School className="w-5 h-5" />
             </div>
-            <div>
-              <Link to="/" className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-bold text-xxs uppercase tracking-wider mb-1 transition gap-1 leading-none">
+            <div className="min-w-0">
+              <Link to="/" className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-bold text-nano sm:text-xxs uppercase tracking-wider mb-1 transition gap-1 leading-none">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"></path></svg>
                 กลับหน้าค้นหา
               </Link>
-              <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none">
+              <h1 className="text-sm sm:text-base md:text-xl lg:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none truncate">
                 ข้อมูลห้องสอบทั้งหมด
               </h1>
-              <p className="text-xxs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xxs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 hidden sm:block">
                 วิทยาลัยการคอมพิวเตอร์ มหาวิทยาลัยขอนแก่น
               </p>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Quick Filters */}
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full md:w-auto shrink-0">
+      <div className="max-w-5xl mx-auto px-6 py-6 pb-24 space-y-6">
+        
+        {/* Quick Filters (Flows with scroll so it doesn't block viewport on mobile) */}
+        <div className="w-full flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between pb-4 border-b border-slate-200/40 dark:border-slate-800/80">
+          <div>
+            <h2 className="text-xs font-black text-slate-400 dark:text-slate-500 tracking-wider uppercase leading-none mb-1">
+              ค้นหาและคัดกรองห้องสอบ
+            </h2>
+            <p className="text-xxs font-semibold text-slate-400 dark:text-slate-500">กรองห้องสอบตามตึกเรียนหรือค้นหาด้วยชื่อห้อง</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full md:w-auto">
             <Input
               type="text"
               placeholder="ค้นหาชื่อห้องสอบ..."
@@ -263,12 +274,12 @@ export const RoomInfo = () => {
               containerClassName="w-full sm:w-56"
               className="py-2.5 text-xs"
             />
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 p-1.5 rounded-xl flex items-center gap-1 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 p-1.5 rounded-xl flex items-center gap-1 shadow-sm shrink-0">
               <button
                 onClick={() => setActiveTab('all')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'all'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
               >
                 ทั้งหมด
@@ -276,8 +287,8 @@ export const RoomInfo = () => {
               <button
                 onClick={() => setActiveTab('cp')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'cp'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
               >
                 ตึก CP
@@ -285,8 +296,8 @@ export const RoomInfo = () => {
               <button
                 onClick={() => setActiveTab('sc')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === 'sc'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
               >
                 ตึก SC
@@ -294,9 +305,6 @@ export const RoomInfo = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="max-w-5xl mx-auto px-6 py-6 pb-24 space-y-6">
 
         {/* MAP CONTAINER */}
         <Card className="w-full overflow-hidden transition-all shadow-md">

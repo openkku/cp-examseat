@@ -277,9 +277,8 @@ Background: Two large aurora blur circles (indigo + cyan) at
 │    │  [Exam Round ▾]                       │  │
 │    │  [  🔍  653380xxx-x  ]  ← mono,xl    │  │
 │    │  [ ══════ ค้นหา ══════ ] ← Button lg  │  │
-│    │                                       │  │
 │    │  ── Calendar Actions (post-search) ── │  │
-│    │  [Copy Link] [Subscribe] [Download]   │  │
+│    │  [▼ เพิ่มตารางสอบลงปฏิทิน (collapsible)] │  │
 │    └───────────────────────────────────────┘  │
 │                                               │
 │    ┌─ Stats Quick Glance (3-col grid) ────┐  │
@@ -313,9 +312,7 @@ Background: Two large aurora blur circles (indigo + cyan) at
 │  ┌── Glass Search Card ──┐ │
 │  │ [Exam Round ▾]         │ │  ← full width
 │  │ [  653380xxx-x  ]      │ │
-│  │ [ ═══ ค้นหา ═══ ]      │ │
-│  │                        │ │
-│  │ [Copy] [Sub] [.ics]    │ │  ← 3-col grid inside card
+│  │ [▼ เพิ่มตารางสอบลงปฏิทิน (collapsible)] │ │
 │  └────────────────────────┘ │
 │                             │
 │  ┌── Stats (1-col stack) ─┐ │  ← grid-cols-1 on mobile
@@ -350,7 +347,7 @@ Background: Two large aurora blur circles (indigo + cyan) at
 - Stats grid switches from `md:grid-cols-3` → `grid-cols-1`
 - ExamCard switches from `md:flex-row` → `flex-col` (details on top, map below)
 - SeatMap preview height: `h-64` on mobile vs `h-auto` filling card on desktop
-- Calendar action buttons remain 3-col grid inside the card (small enough)
+- Calendar action section is collapsible by default to reduce mobile height, expanding to reveal subscription and download details.
 - Content area has `pb-20` to clear MobileTabBar
 
 ---
@@ -390,43 +387,36 @@ Background: Two large aurora blur circles (indigo + cyan) at
 ┌────────────────────────────┐
 │         Navbar              │
 ├────────────────────────────┤
-│ ← กลับ                     │
-│ ข้อมูลห้องสอบทั้งหมด       │  ← text-3xl
-│ วิทยาลัยการคอมพิวเตอร์     │
-│                             │
-│ ┌── Search ────────────┐   │  ← full width (w-full)
-│ │ 🔍 ค้นหาห้อง...       │   │
-│ └──────────────────────┘   │
-│ [ทั้งหมด] [CP] [SC]        │  ← tab row, full width
-│                             │
-│ ┌── Leaflet Map ────────┐  │  ← h-[320px]
-│ │     📍                 │  │
-│ └────────────────────────┘  │
-│                             │
-│ ┌── Room Cards (1-col) ──┐ │  ← grid-cols-1 on mobile
-│ │ ┌────────────────────┐ │ │
-│ │ │ CP.9127            │ │ │
-│ │ │ Layout image       │ │ │
-│ │ │ [📷 x3 grid]       │ │ │
-│ │ └────────────────────┘ │ │
-│ │ ┌────────────────────┐ │ │
-│ │ │ CP.9525            │ │ │
-│ │ └────────────────────┘ │ │
+│ ┌── Sticky Header (row) ─┐ │  ← Single row layout (px-4 py-2.5) to avoid blocking content
+│ │ [◀ Back] ข้อมูลห้องสอบ   │ │  ← Back icon link & title side-by-side
 │ └────────────────────────┘ │
 │                             │
+│ ┌── Content Flow (scroll) ┐ │
+│ │ ┌── Search ──────────┐ │ │  ← Filters live inside scroll container (hides on scroll)
+│ │ │ 🔍 ค้นหาห้อง...     │ │ │
+│ │ └────────────────────┘ │ │
+│ │ [ทั้งหมด] [CP] [SC]      │ │
+│ │                           │ │
+│ │ ┌── Leaflet Map ──────┐ │ │  ← h-[320px]
+│ │ │     📍              │ │ │
+│ │ └─────────────────────┘ │ │
+│ │                           │ │
+│ │ ┌── Room Cards (1-col) ┐ │ │
+│ │ │ CP.9127             │ │ │
+│ │ └──────────────────────┘ │ │
+│ └──────────────────────────┘ │
 ├────────────────────────────┤
 │  MobileTabBar               │
 └────────────────────────────┘
 ```
 
 **Key Mobile Adaptations:**
-- Header switches from `md:flex-row` → `flex-col` (title stacks above filters)
-- Search input: `w-full` on mobile, `sm:w-56` on desktop
-- Tab buttons: row wraps naturally via flex
-- Map height: `h-[320px]` mobile vs `h-[380px]` desktop
-- Room cards grid: `grid-cols-1` mobile → `md:grid-cols-2`
-- Photo grid inside cards stays `grid-cols-3` (thumbnails are small enough)
-- Layout images: `max-h-[220px]` constrained, `object-contain`
+- **Compact Sticky Header (Single-row)**: The sticky header bar is reduced to a single compact row (`px-4 py-2.5`) with the back button and title side-by-side. Decorative icon and descriptions are hidden.
+- **Scrolling Filters**: Quick Filters (Search input and CP/SC building tab selector buttons) are relocated from the sticky header to the main scrolling content area. This ensures they scroll out of view when the user scrolls down, maximizing map and card viewport space.
+- **Search input**: Stretches full-width (`w-full`) on mobile.
+- **Map height**: Compact `h-[320px]` on mobile vs `h-[380px]` on desktop.
+- **Room cards**: Stack vertically in a single column (`grid-cols-1`).
+- **Layout images**: Constrained to `max-h-[220px]` with `object-contain` to fit mobile widths.
 
 ---
 
@@ -473,6 +463,7 @@ Background: Two large aurora blur circles (indigo + cyan) at
 │ │ [Date ▾][Time ▾] ← 48%  │ │  ← w-[48%] each
 │ │ [Room ▾] ← full width   │ │  ← w-full on mobile
 │ │ [🔍 ค้นหา NID...] full  │ │  ← w-full on mobile
+│ │     vvvvvvvvvvvv       │  │
 │ └──────────────────────────┘ │
 │                             │
 │ ┌── Seat Map (full) ─────┐ │  ← flex-1, fills remaining
@@ -533,7 +524,7 @@ Background: Two large aurora blur circles (indigo + cyan) at
 ```
 
 **Key Mobile Adaptations:**
-- **Toolbar filters**: Stack vertically — Round & Room are `w-full`, Date & Time are `w-[48%]` side by side, Search is `w-full`
+- **Compact Header & Collapsible Filters**: The sticky header bar is reduced to a single compact row (`px-4 pt-2.5 pb-1`) with a simplified title block (decorative icon and sub-headings are hidden). The vertical cascading filters are inside a collapsible container that is closed by default to prevent blocking map visibility.
 - **Left sidebar**: Hidden by default, opens as **slide-over drawer** (`fixed inset-y-0 left-0 w-80 max-w-[85vw]`) with dim backdrop
 - **Sidebar toggle**: Floating `[◀]` button at `top-4 left-4` on the map, `md:hidden`
 - **Seat map**: Takes full remaining height, touch pan/zoom/pinch supported
@@ -546,38 +537,40 @@ Background: Two large aurora blur circles (indigo + cyan) at
 
 ### 5.4 Stats (`/stats`)
 
-**Purpose**: Statistical dashboard with charts and data tables.
+**Purpose**: High-fidelity dashboard displaying analytical highlights and room occupancy metrics.
 
 #### Desktop (≥768px)
 
 ```
-┌──────────────────────────────────────────────┐
-│                 Navbar                        │
-├──────────────────────────────────────────────┤
-│ ┌── Sticky Filter Bar ────────────────────┐  │
-│ │ 📊 แผงควบคุมสถิติ     [View Select ▾]   │  │
-│ └──────────────────────────────────────────┘  │
-│                                               │
-│  ┌── Hero Stats (3-col) ────────────────────┐│
-│  │ ┌──────────┐ ┌──────────┐ ┌──────────┐  ││
-│  │ │👥 2,847  │ │🏫 14     │ │📚 47     │  ││
-│  │ │students  │ │rooms     │ │subjects  │  ││
-│  │ └──────────┘ └──────────┘ └──────────┘  ││
-│  └──────────────────────────────────────────┘│
-│                                               │
-│  ┌── Chart Card ────────────────────────────┐│
-│  │ [Legend: 🟦 68  🟩 67  🟨 66  ⬜ Other]  ││
-│  │ ┌────────────────────────────────────┐   ││
-│  │ │ ║█████║  ║████║  ║███████║  ║██║   │   ││
-│  │ │ Midterm   Final   Summer    Spec   │   ││
-│  │ └────────────────────────────────────┘   ││
-│  └──────────────────────────────────────────┘│
-│                                               │
-│  ┌── Data Table ────────────────────────────┐│
-│  │ Round ↕ │ ปี68 │ ปี67 │ ปี66 │ รวม ↕   ││
-│  │ Midterm │ 892  │ 756  │ 421  │ 2,069   ││
-│  └──────────────────────────────────────────┘│
-└──────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                           Navbar                            │
+├─────────────────────────────────────────────────────────────┤
+│ ┌── Sticky Filter Bar (Glassmorphic) ─────────────────────┐ │
+│ │ 📊 แผงควบคุมสถิติ (Statistics Dashboard)   [View Select ▾] │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌── Hero Counter Cards (4-col grid) ──────────────────────┐ │
+│ │ ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐ │ │
+│ │ │👥 2,847   │ │🏫 14      │ │📚 47      │ │💺 4,120   │ │ │
+│ │ │students   │ │rooms      │ │subjects   │ │seatings   │ │ │
+│ │ └───────────┘ └───────────┘ └───────────┘ └───────────┘ │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌── Highlight strip (4-col border-variants) ──────────────┐ │
+│ │ [🔥 Peak Day]   [⚡ Back-to-Back] [🏆 MVP Room] [📊 AvgLoad]│ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌── Advanced Charts (2-col grid) ─────────────────────────┐ │
+│ │ ┌── Department Breakdown ───┐ ┌── Time Slot Balance ────┐ │ │
+│ │ │ █░░░░░ (CP:52% SC:34%...) │ │ █░░░░░ AM: 48% vs PM:52%│ │ │
+│ │ └───────────────────────────┘ └─────────────────────────┘ │ │
+│ └─────────────────────────────────────────────────────────┘ │
+│                                                             │
+│ ┌── Room Utilization Progress List ───────────────────────┐ │
+│ │ CP.9127 ░░░░░░░░░░░░░░░░ 782 seats (100%)               │ │
+│ │ SC.5102 ░░░░░░░░░░░░     521 seats (66%)                │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 #### Mobile (<768px)
@@ -586,52 +579,55 @@ Background: Two large aurora blur circles (indigo + cyan) at
 ┌────────────────────────────┐
 │         Navbar              │
 ├────────────────────────────┤
-│ ┌── Sticky Filter ──────┐ │
-│ │ 📊 แผงควบคุมสถิติ      │ │  ← title & select stack
-│ │ [View Select ▾ full-w] │ │     sm:flex-row, default col
+│ ┌── Sticky Filter (row) ─┐ │  ← Single row layout (px-4 py-2.5) to avoid blocking content
+│ │ 📊 สถิติการจัดสอบ [View ▾] │ │  ← Title & dropdown side-by-side, no icon/subtitle on mobile
 │ └────────────────────────┘ │
 │                             │
-│ ┌── Hero Stats ──────────┐ │
-│ │ ┌────────────────────┐ │ │  ← grid-cols-1 on mobile
-│ │ │ 👥 2,847 students  │ │ │     sm:grid-cols-2
+│ ┌── Hero Stats (stacked) ┐ │
+│ │ ┌────────────────────┐ │ │  ← Stacks vertically (1-col grid)
+│ │ │ 👥 2,847 Students  │ │ │
 │ │ └────────────────────┘ │ │
 │ │ ┌────────────────────┐ │ │
-│ │ │ 🏫 14 rooms        │ │ │
+│ │ │ 🏫 14 Rooms        │ │ │
 │ │ └────────────────────┘ │ │
-│ │ ┌────────────────────┐ │ │  ← sm:col-span-2 on last
-│ │ │ 📚 47 subjects     │ │ │
+│ │ ┌────────────────────┐ │ │
+│ │ │ 📚 47 Subjects     │ │ │
 │ │ └────────────────────┘ │ │
-│ └────────────────────────┘ │
-│                             │
-│ ┌── Chart Card ──────────┐ │
-│ │ Title + Legend (wrap)   │ │
-│ │ ┌── Bars ────────────┐ │ │  ← overflow-x-auto
-│ │ │ ║██║ ║██║ ║███║    │ │ │     h-[240px]
-│ │ │  M    F    S       │ │ │     bars get narrower
+│ │ ┌────────────────────┐ │ │
+│ │ │ 💺 4,120 Seatings  │ │ │
 │ │ └────────────────────┘ │ │
 │ └────────────────────────┘ │
 │                             │
-│ ┌── Data Table ──────────┐ │
-│ │  (overflow-x-auto)      │ │  ← horizontal scroll
-│ │  ┌─────────────────┐   │ │
-│ │  │ Round│ 68│ 67│Tot│   │ │
-│ │  │ Mid  │892│756│2k │   │ │
-│ │  └─────────────────┘   │ │
+│ ┌── Highlights (2x2 grid) ┐ │  ← Stacks as 2-column grid on mobile
+│ │ [Peak Day]   [Back-to-B] │ │
+│ │ [MVP Room]   [Avg Load ] │ │
 │ └────────────────────────┘ │
 │                             │
+│ ┌── Charts (stacked) ────┐ │
+│ │ ┌── Department ──────┐ │ │  ← Stacks as 1-column cards
+│ │ │ CP 52%   SC 34%    │ │ │
+│ │ └────────────────────┘ │ │
+│ │ ┌── Time Slot Balance│ │ │
+│ │ │ AM 48%   PM 52%    │ │ │
+│ │ └────────────────────┘ │ │
+│ └────────────────────────┘ │
+│                             │
+│ ┌── Room Utilization ────┐ │
+│ │ CP.9127 (782 seats)     │ │  ← Progress bars scale to fit mobile screen
+│ │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓     │ │     labels stack on top of progress bars
+│ └────────────────────────┘ │
 ├────────────────────────────┤
 │  MobileTabBar               │
 └────────────────────────────┘
 ```
 
 **Key Mobile Adaptations:**
-- **Filter bar**: Title & select stack vertically `flex-col` on mobile, `sm:flex-row` on tablet+
-- **Hero stat cards**: `grid-cols-1` → `sm:grid-cols-2` → `md:grid-cols-3`
-- **Third stat card**: Gets `sm:col-span-2 md:col-span-1` to fill the row on sm
-- **Bar chart**: Keep same height (`h-[240px]`), bars compress horizontally — `max-w-[45px]` per bar, gap shrinks
-- **Chart legend**: Wraps into multiple lines via `flex-wrap`
-- **Data table**: Wrapped in `overflow-x-auto` div for horizontal scrolling on narrow screens
-- **Sub-view (per-round)**: Top subjects table (`lg:col-span-2`) and cohort sidebar stack vertically as `grid-cols-1 lg:grid-cols-3`
+- **Compact Sticky Header (Single-row)**: The sticky header bar is reduced to a single compact row (`px-4 py-2.5`) with a direct side-by-side layout (`flex-row items-center justify-between`) on mobile. The large gradient icon box is hidden (`hidden sm:flex`), the description subtitle is hidden (`hidden sm:block`), and the title is shortened to fit alongside a compact dropdown selector to avoid blocking vertical viewport content.
+- **Hero stat cards**: Stacks vertically in a single column (`grid-cols-1`) on mobile, scaling to `sm:grid-cols-2` and `md:grid-cols-4`.
+- **Highlights strip**: Switches from a single horizontal row (`md:grid-cols-4`) to a 2-column grid (`grid-cols-2 gap-4`), keeping widgets compact.
+- **Visual breakdowns**: Department and Time Slot Balance cards stack vertically in a single column rather than side-by-side.
+- **Room utilization progress**: Text labels (e.g., room name & total seats count) stack above progress bars instead of remaining in a single horizontal row, giving the bar maximum width on narrow screen displays.
+- **Background elements**: Muted dark overlays are solid colors to ensure charts and lists maintain high readability. Muted grid text changes to high-contrast slate-500.
 
 ---
 
