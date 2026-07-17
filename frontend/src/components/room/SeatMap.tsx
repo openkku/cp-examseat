@@ -1,9 +1,33 @@
 // src/components/room/SeatMap.tsx
 import React, { useEffect, useRef, useState, useLayoutEffect, useMemo } from 'react';
 import type { RoomConfig, LayoutItem, ExamResult } from '../../types';
-import { parseSeat } from '../../utils';
+import { parseSeat, formatBranch } from '../../utils';
 import { SEAT_PALETTE } from '../../lib/constants';
 import { Plus, Minus, Maximize2, Info } from '../icons';
+import type { SeatDisplayPrefs, SeatField } from '../../hooks/useExplorerPrefs';
+
+function resolveField(exam: ExamResult, field: SeatField): string {
+  switch (field) {
+    case 'seat':
+      return exam.seat;
+    case 'subject':
+      return exam.subject;
+    case 'subject_name':
+      return exam.subject_name ?? exam.subject;
+    case 'student_id':
+      const id = (exam.student_id || '').replace(/[^0-9]/g, '');
+      return id.length >= 6 ? `${id.slice(0, 2)}..${id.slice(-4, -1)}-${id.slice(-1)}` : (exam.student_id || '');
+    case 'branch':
+      return (exam.branch ?? '').replace(/^[A-Za-z]{2}-/, '').trim().toUpperCase();
+    case 'section':
+      return exam.section;
+    case 'sheet':
+      return exam.sheet;
+    case 'none':
+    default:
+      return '';
+  }
+}
 
 interface Props {
   config: RoomConfig;
@@ -11,9 +35,11 @@ interface Props {
   occupied?: Record<string, ExamResult>;
   onSeatClick?: (seat: string, data?: ExamResult) => void;
   highlightedSubject?: string;
+  seatDisplayPrefs?: SeatDisplayPrefs;
 }
 
-export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, onSeatClick, highlightedSubject }) => {
+export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, onSeatClick, highlightedSubject, seatDisplayPrefs }) => {
+  const prefs = seatDisplayPrefs || { line1: 'seat', line2: 'subject' };
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef<HTMLDivElement>(null);
@@ -243,6 +269,15 @@ export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, on
               ? `${seatId}: ${studentData.student_id}\n${studentData.subject} - ${subjectInfo?.name || ''}` 
               : seatId;
 
+            const line1Text = isOccupied ? resolveField(studentData, prefs.line1) : seatId;
+            const line2Text = isOccupied && prefs.line2 !== 'none' ? resolveField(studentData, prefs.line2) : '';
+
+            const isLine1Long = line1Text.length >= 8;
+            const line1SizeClass = isLine1Long ? 'text-[9px] tracking-tighter font-sans' : 'text-[10px]';
+
+            const isLine2Long = line2Text.length >= 8;
+            const line2SizeClass = isLine2Long ? 'text-[8px] tracking-tighter font-sans' : 'text-[9px]';
+
             return (
               <div
                 key={seatId}
@@ -252,8 +287,14 @@ export const SeatMap: React.FC<Props> = ({ config, targetSeat, occupied = {}, on
                 className={`flex flex-col items-center justify-center rounded border flex-shrink-0 font-bold ${colorClass} ${interactiveClass}`}
                 style={{ width: '42px', height: '34px' }}
               >
-                <span className={`text-[10px] leading-none ${isOccupied ? 'opacity-70' : ''}`}>{seatId}</span>
-                {isOccupied && <span className="text-[10px] leading-none mt-0.5 truncate max-w-[38px] font-mono">{studentData.subject}</span>}
+                <span className={`${line1SizeClass} leading-none font-bold truncate max-w-[38px]`}>
+                  {line1Text}
+                </span>
+                {line2Text && (
+                  <span className={`${line2SizeClass} leading-none mt-0.5 truncate max-w-[38px] opacity-70`}>
+                    {line2Text}
+                  </span>
+                )}
               </div>
             );
           })}

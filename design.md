@@ -564,7 +564,7 @@ This reduces vertical height of the search card and feels more like a modern sea
 ├──────────────────────────────────────────────────┤
 │ ┌── Dashboard Toolbar ────────────────────────┐  │
 │ │ สำรวจห้องสอบ [CP.9127]                       │  │
-│ │     [Round▾] [Date▾] [Time▾] [Room▾] 🔍NID  │  │
+│ │   [Round▾] [Date▾] [Time▾] [Room▾] [🔍NID] [⊞]│  │
 │ └──────────────────────────────────────────────┘  │
 │                                                    │
 │ ┌──────┬────────────────────────┬─────────────┐  │
@@ -662,6 +662,32 @@ This reduces vertical height of the search card and feels more like a modern sea
 - **Backdrop overlays**: Both sidebar and bottom sheet have `bg-slate-900/40 backdrop-blur-sm` backdrops, tapping backdrop dismisses
 - **Zoom controls**: Floating at `bottom-6 right-6`, always visible above MobileTabBar
 - **SeatMap legend**: Hidden on mobile (shown inside left sidebar instead), visible inline on `sm:` screens
+
+#### 5.3.1 Seat Cell Display Customizer
+
+Users can customize what fields are rendered inside the map seat cells.
+
+- **Toggle Button**: A `SlidersHorizontal` icon button in the toolbar row. Activates with indigo `ring-2` state to show it is open.
+- **Configurator Popover**: A floating glassmorphic panel (`bg-white/75 dark:bg-slate-950/65 backdrop-blur-xl`) positioned absolutely below the toggle button. Does **not** push the layout down. Dismissed on click-outside via `useRef` + `mousedown` listener.
+  - **Animation**: `animate-in fade-in slide-in-from-top-1 duration-150` — slides down from the button, not from an unrelated origin.
+  - **Border**: `border-white/[0.08]` micro-glow ring + `ring-1 ring-inset ring-white/[0.04]` in dark mode for the glassmorphic depth effect.
+  - **Shadow**: `shadow-2xl shadow-black/60` in dark mode for elevation separation.
+- **Field Selector Layout**: Implements a **Mirrored Select Dropdown Layout** where the Line 1 choice (left select box) and Line 2 choice (right select box) are rendered side-by-side inside a 2-column grid (`grid grid-cols-2`). 
+  - Standard `<Select>` components are used, featuring custom chevron icons, dark mode borders, and focus rings.
+  - Left select represents **บรรทัด 1** (no "none" option allowed).
+  - Right select represents **บรรทัด 2** (includes a "(ว่าง) / none" option to hide the second line).
+- **Section Dividers**: Symmetrical gradient `bg-gradient-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent` separates the header title and select boxes.
+- **Storage Persistence**: State persists to `localStorage` under the key `explorer_seat_display` with schema `{ line1: SeatField, line2: SeatField }`.
+- **Default State**: `{ line1: 'seat', line2: 'subject' }` to display the default seat number and subject code.
+- **Field Formatting Rules**:
+  - `student_id`: Normalized to digits-only and rendered as a cohort-prefixed compact code `xx..xxx-x` (e.g. `68..041-4` for `6833800414` or `683380041-4`).
+  - `branch`: Stripped of prefixes and resolved to capitalized short abbreviation only (e.g. `CS`, `CY`, `AI`, `GIS`) to save space.
+- **Dynamic Text Scaling**: Text inputs with $\ge$ 8 characters (e.g. student IDs, long subject names) automatically scale down to `text-[9px]` (line 1) and `text-[8px]` (line 2) with `tracking-tighter font-sans` to prevent text truncation by the browser inside the `42px` width boundaries.
+- **Mobile Behavior**:
+  - The Search Input and Preferences Toggle Button are nested in a side-by-side flex container (`w-full sm:w-auto flex items-center gap-2`) to stay on the same line on mobile screens.
+  - Clicking the toggle button opens a full-screen backdrop overlay (`sm:hidden fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-20`) for easy click-to-dismiss.
+  - The Popover transforms into a floating bottom sheet layout (`fixed bottom-4 left-4 right-4 sm:absolute sm:bottom-auto ...`) with bottom slide-up animation (`slide-in-from-bottom-4`).
+  - To prevent viewport overflow on smaller devices, the mobile layout bounds the content height using `max-h-[50vh]` combined with `overflow-y-auto`.
 
 ---
 

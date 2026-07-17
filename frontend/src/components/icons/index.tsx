@@ -32,7 +32,14 @@ export {
   Smartphone,
   Monitor,
   HelpCircle,
-  X
+  X,
+  SlidersHorizontal,
+  Hash,
+  BookOpen,
+  Tag,
+  Layers,
+  FileText,
+  GraduationCap
 } from 'lucide-react';
 
 // Unified GitHub icon (since brand icons are deprecated in newer Lucide React versions)

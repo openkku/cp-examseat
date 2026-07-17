@@ -6,6 +6,8 @@ import type { ExamResult, RoomConfigMap, StudentExamsResponse } from '../types';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { SEAT_PALETTE } from '../lib/constants';
 import { formatBranch } from '../utils';
+import { useExplorerPrefs } from '../hooks/useExplorerPrefs';
+import type { SeatField } from '../hooks/useExplorerPrefs';
 
 // UI Primitives & Icons
 import { Card } from '../components/ui/Card';
@@ -25,8 +27,45 @@ import {
   ChevronDown,
   Trash2,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  SlidersHorizontal,
+  Hash,
+  BookOpen,
+  FileText,
+  GraduationCap,
+  Tag,
+  Layers
 } from '../components/icons';
+
+
+// Field metadata: icon + label for the popover selector
+const FIELD_META: Record<string, { label: string }> = {
+  seat:         { label: 'หมายเลขที่นั่ง' },
+  subject:      { label: 'รหัสวิชา' },
+  subject_name: { label: 'ชื่อวิชา' },
+  student_id:   { label: 'รหัส นศ.' },
+  branch:       { label: 'สาขา' },
+  section:      { label: 'กลุ่มเรียน' },
+  sheet:        { label: 'แผ่นเซ็นชื่อ' },
+  none:         { label: '(ว่าง)' },
+};
+
+const FIELD_ICON: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
+  seat:         Hash,
+  subject:      BookOpen,
+  subject_name: FileText,
+  student_id:   GraduationCap,
+  branch:       Tag,
+  section:      Layers,
+  sheet:        User,
+};
+
+const LINE1_OPTIONS = Object.entries(FIELD_META)
+  .filter(([v]) => v !== 'none')
+  .map(([value, m]) => ({ value, label: m.label }));
+const LINE2_OPTIONS = Object.entries(FIELD_META)
+  .map(([value, m]) => ({ value, label: m.label }));
+
 
 interface RoundOption {
   id: string;
@@ -65,11 +104,19 @@ export const RoomExplorer: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(true);
 
-  // Close search popup on outside clicks
+  // Seat cell display preferences
+  const [prefs, setPrefs] = useExplorerPrefs();
+  const [isDisplayOpen, setIsDisplayOpen] = useState(false);
+  const displayRef = useRef<HTMLDivElement>(null);
+
+  // Close search popup and preferences popover on outside clicks
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowResults(false);
+      }
+      if (displayRef.current && !displayRef.current.contains(e.target as Node)) {
+        setIsDisplayOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -480,82 +527,150 @@ export const RoomExplorer: React.FC = () => {
               </Select>
             </div>
 
-            {/* Divider */}
-            <span className="hidden sm:block h-5 w-px bg-slate-200 dark:bg-slate-800 mx-1"></span>
+            {/* Search & Preference Toggle Group */}
+            <div className="w-full sm:w-auto flex items-center gap-2">
+              {/* Autocomplete Search input */}
+              <div className="relative flex-1 sm:w-56" ref={searchRef}>
+                <form onSubmit={handleSearch} className="relative group">
+                  <Input
+                    type="text"
+                    placeholder="ค้นหารหัส นศ. ในห้องสอบนี้"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    disabled={!round}
+                    leftIcon={<Search className="h-4 w-4" />}
+                    className="py-2.5 text-xs font-mono"
+                  />
 
-            {/* Autocomplete Search input */}
-            <div className="relative w-full sm:w-56" ref={searchRef}>
-              <form onSubmit={handleSearch} className="relative group">
-                <Input
-                  type="text"
-                  placeholder="ค้นหารหัส นศ. ในห้องสอบนี้"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  disabled={!round}
-                  leftIcon={<Search className="h-4 w-4" />}
-                  className="py-2.5 text-xs font-mono"
-                />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => { setSearchQuery(""); setShowResults(false); }}
+                        className="p-1 rounded-full text-slate-400 hover:bg-slate-200/50 hover:text-slate-655 transition-colors cursor-pointer animate-in fade-in"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </form>
 
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => { setSearchQuery(""); setShowResults(false); }}
-                      className="p-1 rounded-full text-slate-400 hover:bg-slate-200/50 hover:text-slate-655 transition-colors cursor-pointer animate-in fade-in"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-              </form>
-
-              {/* Search Dropdown popup */}
-              {showResults && (
-                <Card className="absolute top-full mt-2 right-0 left-0 shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  {isSearching ? (
-                    <div className="p-8 text-center flex flex-col items-center justify-center gap-2 text-slate-400">
-                      <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-xs font-black uppercase tracking-wider text-slate-500 leading-none">กำลังค้นหา...</span>
-                    </div>
-                  ) : searchResults.length > 0 ? (
-                    <div className="max-h-[260px] overflow-y-auto">
-                      <div className="px-4 py-2 bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800/80 text-xxs font-black text-slate-455 dark:text-slate-500 uppercase tracking-widest leading-none">
-                        พบผลการค้นหา {searchResults.length} รายการ
+                {/* Search Dropdown popup */}
+                {showResults && (
+                  <Card className="absolute top-full mt-2 right-0 left-0 shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    {isSearching ? (
+                      <div className="p-8 text-center flex flex-col items-center justify-center gap-2 text-slate-400">
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-500 leading-none">กำลังค้นหา...</span>
                       </div>
-                      {searchResults.map((res, i) => (
-                        <div
-                          key={i}
-                          className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800/40 cursor-pointer group transition-colors last:border-0"
-                          onClick={() => selectSearchResult(res)}
-                        >
-                          <div className="flex justify-between items-start mb-1 gap-2">
-                            <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200 line-clamp-1 leading-snug">{getSubjectName(res)}</span>
-                            <Badge variant="slate" size="sm" className="font-extrabold font-mono shrink-0">
-                              {res.room}
-                            </Badge>
-                          </div>
-                          <div className="flex justify-between items-center text-xxs text-slate-500 dark:text-slate-400 mt-1.5 leading-none">
-                            <div className="flex items-center gap-1.5 font-semibold">
-                              <span>{res.date}</span>
-                              <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full"></span>
-                              <span>{res.time}</span>
-                            </div>
-                            <span className="font-mono text-blue-600 dark:text-blue-400 font-extrabold bg-blue-50 dark:bg-blue-950/60 px-1.5 rounded">
-                              ที่นั่ง {res.seat}
-                            </span>
-                          </div>
+                    ) : searchResults.length > 0 ? (
+                      <div className="max-h-[260px] overflow-y-auto">
+                        <div className="px-4 py-2 bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800/80 text-xxs font-black text-slate-455 dark:text-slate-500 uppercase tracking-widest leading-none">
+                          พบผลการค้นหา {searchResults.length} รายการ
                         </div>
-                      ))}
+                        {searchResults.map((res, i) => (
+                          <div
+                            key={i}
+                            className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800/40 cursor-pointer group transition-colors last:border-0"
+                            onClick={() => selectSearchResult(res)}
+                          >
+                            <div className="flex justify-between items-start mb-1 gap-2">
+                              <span className="font-extrabold text-xs text-slate-800 dark:text-slate-200 line-clamp-1 leading-snug">{getSubjectName(res)}</span>
+                              <Badge variant="slate" size="sm" className="font-extrabold font-mono shrink-0">
+                                {res.room}
+                              </Badge>
+                            </div>
+                            <div className="flex justify-between items-center text-xxs text-slate-500 dark:text-slate-400 mt-1.5 leading-none">
+                              <div className="flex items-center gap-1.5 font-semibold">
+                                <span>{res.date}</span>
+                                <span className="w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full"></span>
+                                <span>{res.time}</span>
+                              </div>
+                              <span className="font-mono text-blue-600 dark:text-blue-400 font-extrabold bg-blue-50 dark:bg-blue-950/60 px-1.5 rounded">
+                                ที่นั่ง {res.seat}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center text-slate-400 dark:text-slate-600 flex flex-col items-center gap-2">
+                        <span className="text-2xl select-none">🔍</span>
+                        <span className="text-xs font-bold text-slate-500">ไม่พบข้อมูลที่นั่ง</span>
+                      </div>
+                    )}
+                  </Card>
+                )}
+              </div>
+
+              {/* Display preferences toggle button */}
+              <div className="relative" ref={displayRef}>
+                <button
+                  onClick={() => setIsDisplayOpen(v => !v)}
+                  type="button"
+                  title="แสดงผลที่นั่ง"
+                  className={`shrink-0 p-2.5 rounded-xl border transition-all duration-200 cursor-pointer h-[38px] w-[38px] flex items-center justify-center
+                    ${isDisplayOpen
+                      ? 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500/20'
+                      : 'bg-white dark:bg-slate-900 border-slate-200/50 dark:border-slate-800 text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
+                  aria-label="แสดงผลที่นั่ง"
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                </button>
+
+                {/* Mobile Backdrop Blur Overlay */}
+                {isDisplayOpen && (
+                  <div
+                    className="sm:hidden fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-20 animate-in fade-in duration-200"
+                    onClick={() => setIsDisplayOpen(false)}
+                  />
+                )}
+
+                {/* Floating Glassmorphic Popover — responsively adapts to mobile floating bottom sheet */}
+                {isDisplayOpen && (
+                  <div className="fixed bottom-4 left-4 right-4 sm:absolute sm:bottom-auto sm:right-0 sm:left-auto sm:top-full sm:mt-2 w-auto sm:w-[320px] z-30 rounded-2xl overflow-hidden bg-white/90 dark:bg-slate-950/75 backdrop-blur-xl border border-slate-200/60 dark:border-white/[0.08] shadow-2xl shadow-black/20 dark:shadow-black/60 ring-1 ring-inset ring-white/30 dark:ring-white/[0.04] animate-in fade-in slide-in-from-bottom-4 sm:slide-in-from-top-1 duration-200 flex flex-col">
+                    
+                    {/* Drag handle for mobile */}
+                    <div className="sm:hidden w-12 h-1 bg-slate-300 dark:bg-slate-700/60 rounded-full mx-auto my-3 shrink-0" />
+
+                    {/* Header */}
+                    <div className="flex items-center gap-2 px-4 pt-1 pb-3 sm:pt-3.5">
+                      <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />
+                      <span className="text-xs font-black text-slate-700 dark:text-slate-200 tracking-tight leading-none">
+                        แสดงผลที่นั่ง
+                      </span>
                     </div>
-                  ) : (
-                    <div className="p-8 text-center text-slate-400 dark:text-slate-600 flex flex-col items-center gap-2">
-                      <span className="text-2xl select-none">🔍</span>
-                      <span className="text-xs font-bold text-slate-500">ไม่พบข้อมูลที่นั่ง</span>
+
+                    {/* Gradient divider */}
+                    <div className="mx-4 h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-white/10 to-transparent" />
+
+                    {/* Mirrored Select Inputs */}
+                    <div className="grid grid-cols-2 gap-3.5 px-4 py-4 sm:py-3.5">
+                      <Select
+                        label="บรรทัด 1"
+                        value={prefs.line1}
+                        onChange={e => setPrefs({ ...prefs, line1: e.target.value as Exclude<SeatField, 'none'> })}
+                        className="w-full text-xs font-bold font-sans"
+                      >
+                        {LINE1_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </Select>
+
+                      <Select
+                        label="บรรทัด 2"
+                        value={prefs.line2}
+                        onChange={e => setPrefs({ ...prefs, line2: e.target.value as SeatField })}
+                        className="w-full text-xs font-bold font-sans"
+                      >
+                        {LINE2_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </Select>
                     </div>
-                  )}
-                </Card>
-              )}
+
+                  </div>
+                )}
+              </div>
             </div>
+
           </div>
 
         </div>
@@ -760,6 +875,7 @@ export const RoomExplorer: React.FC = () => {
               targetSeat={selectedSeat?.seat}
               onSeatClick={(seatId, data) => setSelectedSeat(data || null)}
               highlightedSubject={highlightedSubject}
+              seatDisplayPrefs={prefs}
             />
           ) : (
             <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-600 flex-col gap-3.5 p-6 text-center">
