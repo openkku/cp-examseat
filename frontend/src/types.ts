@@ -12,7 +12,9 @@ export interface ExamResult {
   student_id: string; // mapped from JSON "student_id"
   seat: string;
   note: string;
+  branch?: string;
 }
+
 
 // ... (Rest of your existing layout definitions: SeatItem, ObstructionItem, etc.)
 export interface SeatItem {

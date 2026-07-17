@@ -54,6 +54,10 @@ body {
 .dark body {
   background-color: #0a0f24; /* Deep Space background - updated to be lighter */
   color: #f1f5f9; /* Snow primary text */
+  --color-slate-400: #a5b4d4; /* Brighten up inactive links / icons */
+  --color-slate-450: #a5b4d4; /* Typos fallback */
+  --color-slate-455: #cbd5e1; /* Even brighter slate */
+  --color-slate-500: #8898d0; /* Brighten up metadata labels */
 }
 
 /* 2. OBSTRUCTION STRIPES 

@@ -275,7 +275,8 @@ func TestExtractAndMigrateSuccess(t *testing.T) {
 		SELECT 
 			e.sheet, e.date, e.student_id, e.time, e.room, e.subject, 
 			COALESCE(s.name, '') as subject_name, 
-			e.section, e.seat, e.note 
+			e.section, e.seat, e.note,
+			COALESCE(e.branch, '') as branch
 		FROM exams e
 		LEFT JOIN subjects s ON e.subject = s.id AND e.exam_round = s.exam_round
 		WHERE e.exam_round = ?
@@ -296,12 +297,13 @@ func TestExtractAndMigrateSuccess(t *testing.T) {
 		Section     string
 		Seat        string
 		Note        string
+		Branch      string
 	}
 
 	var records []SeatRecord
 	for rows.Next() {
 		var r SeatRecord
-		err := rows.Scan(&r.Sheet, &r.Date, &r.StudentID, &r.Time, &r.Room, &r.Subject, &r.SubjectName, &r.Section, &r.Seat, &r.Note)
+		err := rows.Scan(&r.Sheet, &r.Date, &r.StudentID, &r.Time, &r.Room, &r.Subject, &r.SubjectName, &r.Section, &r.Seat, &r.Note, &r.Branch)
 		if err != nil {
 			t.Fatalf("Failed to scan row: %v", err)
 		}
@@ -318,25 +320,25 @@ func TestExtractAndMigrateSuccess(t *testing.T) {
 
 	// Check Record 1: Sheet 2, Student 6533801234
 	r1 := records[0]
-	if r1.Sheet != "1 เม.ย 69 (เช้า)" || r1.Date != "2026-04-01" || r1.StudentID != "6533801234" || r1.Subject != "MATH101" || r1.SubjectName != "Calculus" || r1.Section != "3" || r1.Seat != "C12" || r1.Room != "SC.2102" || r1.Time != "09.00-12.00" {
+	if r1.Sheet != "1 เม.ย 69 (เช้า)" || r1.Date != "2026-04-01" || r1.StudentID != "6533801234" || r1.Subject != "MATH101" || r1.SubjectName != "Calculus" || r1.Section != "3" || r1.Seat != "C12" || r1.Room != "SC.2102" || r1.Time != "09.00-12.00" || r1.Branch != "CP-AI" {
 		t.Errorf("r1 mismatch: %+v", r1)
 	}
 
 	// Check Record 2: Sheet 1, Student 6833800746
 	r2 := records[1]
-	if r2.Sheet != "27 ต.ค68 (เช้า)" || r2.Date != "2025-10-27" || r2.StudentID != "6833800746" || r2.Subject != "CP9127" || r2.SubjectName != "Object Oriented Programming" || r2.Section != "18" || r2.Seat != "A4" || r2.Room != "CP.9127" || r2.Time != "08.30-11.30" {
+	if r2.Sheet != "27 ต.ค68 (เช้า)" || r2.Date != "2025-10-27" || r2.StudentID != "6833800746" || r2.Subject != "CP9127" || r2.SubjectName != "Object Oriented Programming" || r2.Section != "18" || r2.Seat != "A4" || r2.Room != "CP.9127" || r2.Time != "08.30-11.30" || r2.Branch != "CP-CS" {
 		t.Errorf("r2 mismatch: %+v", r2)
 	}
 
 	// Check Record 3: Sheet 1, Student 6833800770
 	r3 := records[2]
-	if r3.Sheet != "27 ต.ค68 (เช้า)" || r3.Date != "2025-10-27" || r3.StudentID != "6833800770" || r3.Note != "หมดสิทธิ์สอบ" || r3.Seat != "A5" {
+	if r3.Sheet != "27 ต.ค68 (เช้า)" || r3.Date != "2025-10-27" || r3.StudentID != "6833800770" || r3.Note != "หมดสิทธิ์สอบ" || r3.Seat != "A5" || r3.Branch != "CP-Cy" {
 		t.Errorf("r3 mismatch: %+v", r3)
 	}
 
 	// Check Record 4: Sheet 1, Student 6833803215
 	r4 := records[3]
-	if r4.Sheet != "27 ต.ค68 (เช้า)" || r4.Date != "2025-10-27" || r4.StudentID != "6833803215" || r4.Subject != "LI101002" || r4.SubjectName != "English II" || r4.Section != "90" || r4.Seat != "B1" || r4.Room != "SC.1101" || r4.Time != "13.00-16.00" {
+	if r4.Sheet != "27 ต.ค68 (เช้า)" || r4.Date != "2025-10-27" || r4.StudentID != "6833803215" || r4.Subject != "LI101002" || r4.SubjectName != "English II" || r4.Section != "90" || r4.Seat != "B1" || r4.Room != "SC.1101" || r4.Time != "13.00-16.00" || r4.Branch != "LI-CS" {
 		t.Errorf("r4 mismatch: %+v", r4)
 	}
 }
@@ -363,11 +365,13 @@ func createMockExcelFile(t *testing.T, filePath string) {
 	// Students for Block 1
 	f.SetCellValue(sheet1, "A6", "1")
 	f.SetCellValue(sheet1, "B6", "683380074-6")
+	f.SetCellValue(sheet1, "D6", "CP-CS")
 	f.SetCellValue(sheet1, "E6", "A4")
 	f.SetCellValue(sheet1, "F6", "")
 
 	f.SetCellValue(sheet1, "A7", "2")
 	f.SetCellValue(sheet1, "B7", "683380077-0")
+	f.SetCellValue(sheet1, "D7", "CP-Cy")
 	f.SetCellValue(sheet1, "E7", "A5")
 	f.SetCellValue(sheet1, "F7", "หมดสิทธิ์สอบ")
 
@@ -389,6 +393,7 @@ func createMockExcelFile(t *testing.T, filePath string) {
 	// Students for Block 2
 	f.SetCellValue(sheet1, "A15", "1")
 	f.SetCellValue(sheet1, "B15", "683380321-5")
+	f.SetCellValue(sheet1, "D15", "LI-CS")
 	f.SetCellValue(sheet1, "E15", "B1")
 	f.SetCellValue(sheet1, "F15", "")
 
@@ -411,6 +416,7 @@ func createMockExcelFile(t *testing.T, filePath string) {
 	f.SetCellValue(sheet2, "B5", "รหัส")
 	f.SetCellValue(sheet2, "A6", "1")
 	f.SetCellValue(sheet2, "B6", "653380123-4")
+	f.SetCellValue(sheet2, "D6", "CP-AI")
 	f.SetCellValue(sheet2, "E6", "C12")
 
 	// Delete default sheet

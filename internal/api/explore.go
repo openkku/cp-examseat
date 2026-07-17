@@ -73,6 +73,7 @@ func HandleGetExplore(d database.Database, w http.ResponseWriter, r *http.Reques
 					StudentID:   s.StudentID,
 					Seat:        s.Seat,
 					Note:        s.Note,
+					Branch:      s.Branch,
 				})
 			}
 

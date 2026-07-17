@@ -4,7 +4,9 @@ import type { ExamResult, RoomConfigMap } from '../types';
 import { ExamCard } from '../components/exam/ExamCard';
 import { ScrollToTopButton } from '../components/ScrollToTopButton';
 import { SearchHistory, type SearchHistoryItem } from '../components/search/SearchHistory';
+import { StudentProfileCard } from '../components/search/StudentProfileCard';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
+import { hasExamPassed } from '../utils';
 
 // UI Primitives
 import { Card } from '../components/ui/Card';
@@ -17,7 +19,6 @@ import { Badge } from '../components/ui/Badge';
 import {
   Search
 } from '../components/icons';
-import { CalendarActions } from '../components/calendar/CalendarActions';
 
 interface RoundOption {
   id: string;
@@ -28,11 +29,52 @@ export const StudentSearch = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [studentId, setStudentId] = useState('');
   const [results, setResults] = useState<ExamResult[] | null>(null);
+  const [branch, setBranch] = useState<string>('');
   const [configMap, setConfigMap] = useState<RoomConfigMap>({});
   const [rounds, setRounds] = useState<RoundOption[]>([]);
   const [selectedRound, setSelectedRound] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Hide passed exams toggle (disabled by default)
+  const [hidePassed, setHidePassed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('hide_passed_exams') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('hide_passed_exams', String(hidePassed));
+    } catch (e) {
+      console.warn('Could not save filter to localStorage', e);
+    }
+  }, [hidePassed]);
+
+  // Sort results: if hidePassed is true, upcoming first, passed pushed to bottom.
+  // Otherwise, sort purely chronologically.
+  const processedResults = useMemo(() => {
+    if (!results) return null;
+
+    return [...results].sort((a, b) => {
+      const aPassed = hasExamPassed(a.date, a.time);
+      const bPassed = hasExamPassed(b.date, b.time);
+
+      if (hidePassed && aPassed !== bPassed) {
+        return aPassed ? 1 : -1; // Push passed exams to the bottom when hidePassed is true
+      }
+
+      if (a.date !== b.date) {
+        return a.date.localeCompare(b.date);
+      }
+      
+      const aStart = a.time?.split('-')[0] || '';
+      const bStart = b.time?.split('-')[0] || '';
+      return aStart.localeCompare(bStart);
+    });
+  }, [results, hidePassed]);
 
   // Stats dashboard state
   const [statsData, setStatsData] = useState<any>(null);
@@ -97,21 +139,24 @@ export const StudentSearch = () => {
     setLoading(true);
     setError('');
     setResults(null);
+    setBranch('');
 
     try {
       const res = await fetch(`/api/exam?id=${id}&round=${roundId}`);
       if (res.status === 404) {
         setResults([]);
+        setBranch('');
         return;
       }
       if (!res.ok) throw new Error("Failed to fetch data.");
 
-      const rawData = await res.json();
+      const rawData: ExamResult[] = await res.json();
       setResults(rawData);
+      setBranch(rawData.length > 0 ? (rawData[0].branch || '') : '');
       // Save to history on successful search results
       saveToHistory(id, roundId);
 
-      const uniqueRooms = [...new Set(rawData.map((exam: { room: any; }) => exam.room))].filter(Boolean);
+      const uniqueRooms = [...new Set(rawData.map((exam) => exam.room))].filter(Boolean);
 
       if (uniqueRooms.length > 0) {
         const roomsParam = uniqueRooms.join(',');
@@ -215,6 +260,10 @@ export const StudentSearch = () => {
   const topSubjects = currentRoundStats?.top_subjects?.slice(0, 3) || [];
   const cohorts = currentRoundStats?.year_distribution?.slice(0, 4) || [];
 
+  const examsCount = results ? results.length : 0;
+  const roomsCount = results ? new Set(results.map(r => r.room).filter(Boolean)).size : 0;
+  const daysCount = results ? new Set(results.map(r => r.date).filter(Boolean)).size : 0;
+
   return (
     <div
       ref={scrollContainerRef}
@@ -226,13 +275,13 @@ export const StudentSearch = () => {
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-800 dark:text-slate-100 leading-none mb-3">
             ค้นหาที่นั่งสอบ
           </h1>
-          <p className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-sky-600 bg-clip-text text-transparent">
+          <p className="text-base md:text-lg font-bold text-slate-500 dark:text-slate-400">
             วิทยาลัยการคอมพิวเตอร์ มหาวิทยาลัยขอนแก่น
           </p>
         </div>
 
-        {/* SEARCH CONTAINER (Glassmorphic) */}
-        <Card glass className="p-6 md:p-8 w-full max-w-lg mb-8 md:mb-12 shadow-xl hover:shadow-2xl !overflow-visible">
+        {/* SEARCH CONTAINER (Minimal Blue Theme) */}
+        <Card className="p-6 md:p-8 w-full max-w-lg mb-8 md:mb-12 border-slate-200 dark:border-slate-800 shadow-md dark:shadow-none hover:shadow-lg dark:hover:shadow-none !overflow-visible">
           {/* Round Selector */}
           <div className="mb-5">
             <Select
@@ -253,51 +302,84 @@ export const StudentSearch = () => {
             </Select>
           </div>
 
-          {/* Student ID input */}
-          <div className="mb-6 relative" ref={historyRef}>
-            <Input
-              label="รหัสนักศึกษา (Student ID)"
-              type="text"
-              placeholder="653380123-4"
-              value={studentId}
-              onChange={handleInput}
-              onFocus={() => setShowHistory(true)}
-              onClick={() => setShowHistory(true)}
-              onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
-              maxLength={11}
-              className="font-mono text-center text-xl tracking-widest py-3 border-slate-200 dark:border-slate-800"
-            />
+          {/* Student ID input with inline search button */}
+          <div className="mb-4" ref={historyRef}>
+            <label className="block text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
+              รหัสนักศึกษา (Student ID)
+            </label>
+            <div className="flex items-center gap-2.5 relative">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="653380123-4"
+                  value={studentId}
+                  onChange={handleInput}
+                  onFocus={() => setShowHistory(true)}
+                  onClick={() => setShowHistory(true)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
+                  maxLength={11}
+                  className="shadow-none appearance-none border rounded-xl w-full py-3 px-4 text-slate-800 dark:text-slate-100 leading-tight focus:outline-none focus:ring-2 focus:ring-slate-350 dark:focus:ring-slate-700 focus:border-transparent font-mono text-center text-xl tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+                />
 
-            {showHistory && (
-              <SearchHistory
-                history={history}
-                onSelect={handleHistoryClick}
-                onRemove={removeFromHistory}
-                onClearAll={clearAllHistory}
-              />
-            )}
+                {showHistory && (
+                  <SearchHistory
+                    history={history}
+                    onSelect={handleHistoryClick}
+                    onRemove={removeFromHistory}
+                    onClearAll={clearAllHistory}
+                  />
+                )}
+              </div>
+
+              <button
+                onClick={handleManualSearch}
+                disabled={loading || !selectedRound}
+                className="shrink-0 py-3 px-6 rounded-xl font-bold text-sm whitespace-nowrap h-[50px] flex items-center justify-center bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white border-none shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all duration-200 cursor-pointer gap-2"
+              >
+                {loading ? '...' : (
+                  <>
+                    <Search className="w-5 h-5 text-white" />
+                    <span>ค้นหา</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
-          <Button
-            onClick={handleManualSearch}
-            disabled={loading || !selectedRound}
-            fullWidth
-            size="lg"
-            icon={<Search className="w-5 h-5" />}
-          >
-            {loading ? 'กำลังค้นหา...' : 'ค้นหาที่นั่งสอบ'}
-          </Button>
-
           {error && <div className="mt-4 text-rose-500 text-center text-sm font-semibold">{error}</div>}
-          {results !== null && results.length > 0 && (
-            <CalendarActions studentId={studentId} />
-          )}
         </Card>
+
+        {/* STUDENT PROFILE CARD */}
+        {results !== null && results.length > 0 && (
+          <StudentProfileCard
+            studentId={studentId}
+            branch={branch}
+            examsCount={examsCount}
+            roomsCount={roomsCount}
+            daysCount={daysCount}
+          />
+        )}
 
         {/* RESULTS AREA */}
         <div className="w-full space-y-6">
+          {results !== null && results.length > 0 && (
+            <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 animate-in fade-in duration-300">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                ตารางสอบของคุณ ({processedResults?.length || 0} รายการ)
+              </span>
+              <label className="flex items-center gap-2.5 cursor-pointer select-none text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={hidePassed}
+                  onChange={(e) => setHidePassed(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-250 dark:border-slate-800 text-blue-600 focus:ring-blue-500 bg-white dark:bg-slate-900 transition-all cursor-pointer"
+                />
+                <span>ซ่อนวิชาที่สอบผ่านไปแล้ว</span>
+              </label>
+            </div>
+          )}
 
-          {results?.map((exam, idx) => (
+          {processedResults?.map((exam, idx) => (
             <ExamCard
               key={`${exam.subject}-${idx}`}
               data={exam}
@@ -305,6 +387,7 @@ export const StudentSearch = () => {
               subjectName={exam.subject_name || ""}
               onViewMap={() => handleViewMap(exam.room)}
               onJumpToExplorer={() => handleJumpToExplorer(exam)}
+              isPassed={hidePassed && hasExamPassed(exam.date, exam.time)}
             />
           ))}
 
@@ -323,24 +406,24 @@ export const StudentSearch = () => {
 
               {/* Summary Cards */}
               <div className="md:col-span-1 space-y-4">
-                <Card className="p-5 border-slate-100 dark:border-slate-800/80">
-                  <div className="text-slate-400 dark:text-slate-500 text-xxs font-bold uppercase tracking-wider mb-1 leading-none">นักศึกษาที่มีสิทธิ์สอบ</div>
+                <Card className="p-5 border-slate-200 dark:border-slate-800 border-l-4 border-l-blue-500 dark:border-l-blue-500/80">
+                  <div className="text-slate-400 dark:text-slate-400 text-xxs font-bold uppercase tracking-wider mb-1 leading-none">นักศึกษาที่มีสิทธิ์สอบ</div>
                   <div className="text-3xl font-black text-blue-600 dark:text-blue-400 mt-2 leading-none">
-                    {animatedHeadcount.toLocaleString()} <span className="text-xs font-bold text-slate-400 dark:text-slate-500 ml-1">คน</span>
+                    {animatedHeadcount.toLocaleString()} <span className="text-xs font-bold text-slate-400 dark:text-slate-400 ml-1">คน</span>
                   </div>
                 </Card>
 
-                <Card className="p-5 border-slate-100 dark:border-slate-800/80">
-                  <div className="text-slate-400 dark:text-slate-500 text-xxs font-bold uppercase tracking-wider mb-1 leading-none">ห้องสอบที่จัดสรร</div>
-                  <div className="text-3xl font-black text-indigo-600 dark:text-indigo-400 mt-2 leading-none">
-                    {animatedRooms.toLocaleString()} <span className="text-xs font-bold text-slate-400 dark:text-slate-500 ml-1">ห้อง</span>
+                <Card className="p-5 border-slate-200 dark:border-slate-800 border-l-4 border-l-emerald-500 dark:border-l-emerald-500/80">
+                  <div className="text-slate-400 dark:text-slate-400 text-xxs font-bold uppercase tracking-wider mb-1 leading-none">ห้องสอบที่จัดสรร</div>
+                  <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-2 leading-none">
+                    {animatedRooms.toLocaleString()} <span className="text-xs font-bold text-slate-400 dark:text-slate-400 ml-1">ห้อง</span>
                   </div>
                 </Card>
               </div>
 
               {/* Top Subjects Volume */}
-              <Card className="p-5 border-slate-100 dark:border-slate-800/80 md:col-span-1">
-                <h3 className="font-extrabold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-3 pb-2 border-b border-slate-100 dark:border-slate-800/60 leading-none">
+              <Card className="p-5 border-slate-200 dark:border-slate-800 md:col-span-1 border-l-4 border-l-sky-500 dark:border-l-sky-500/80">
+                <h3 className="font-extrabold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-3 pb-2 border-b border-slate-200/50 dark:border-slate-800/50 leading-none">
                   รายวิชาที่มีที่นั่งสูงสุด
                 </h3>
                 {topSubjects.length === 0 ? (
@@ -350,10 +433,10 @@ export const StudentSearch = () => {
                     {topSubjects.map((sub: any) => (
                       <div key={sub.code} className="flex justify-between items-start text-xs gap-2.5">
                         <div className="flex-1 min-w-0">
-                          <span className="font-bold text-slate-750 dark:text-slate-200 truncate block leading-tight">{sub.name}</span>
-                          <span className="text-xxs text-slate-400 dark:text-slate-500 font-mono mt-0.5 block">{sub.code}</span>
+                          <span className="font-bold text-slate-700 dark:text-slate-200 truncate block leading-tight">{sub.name}</span>
+                          <span className="text-xxs text-slate-400 dark:text-slate-400 font-mono mt-0.5 block">{sub.code}</span>
                         </div>
-                        <Badge variant="blue" size="sm" className="shrink-0 font-extrabold">
+                        <Badge variant="slate" size="sm" className="shrink-0 font-bold bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-300 border-none px-2 py-0.5">
                           {sub.count}
                         </Badge>
                       </div>
@@ -363,8 +446,8 @@ export const StudentSearch = () => {
               </Card>
 
               {/* Cohort Breakdown */}
-              <Card className="p-5 border-slate-100 dark:border-slate-800/80 md:col-span-1">
-                <h3 className="font-extrabold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-3 pb-2 border-b border-slate-100 dark:border-slate-800/60 leading-none">
+              <Card className="p-5 border-slate-200 dark:border-slate-800 md:col-span-1 border-l-4 border-l-violet-500 dark:border-l-violet-500/80">
+                <h3 className="font-extrabold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider mb-3 pb-2 border-b border-slate-200/50 dark:border-slate-800/50 leading-none">
                   สัดส่วนตามชั้นปี (รหัส นศ.)
                 </h3>
                 {cohorts.length === 0 ? (
@@ -373,8 +456,8 @@ export const StudentSearch = () => {
                   <div className="space-y-2.5">
                     {cohorts.map((item: any) => (
                       <div key={item.year} className="flex justify-between items-center text-xs">
-                        <span className="font-bold text-slate-500 dark:text-slate-455">รหัสชั้นปี {item.year}</span>
-                        <span className="font-black text-slate-750 dark:text-slate-200 font-mono">{item.count.toLocaleString()} คน</span>
+                        <span className="font-bold text-slate-550 dark:text-slate-400">รหัสชั้นปี {item.year}</span>
+                        <span className="font-black text-violet-600 dark:text-violet-400 font-mono">{item.count.toLocaleString()} คน</span>
                       </div>
                     ))}
                   </div>

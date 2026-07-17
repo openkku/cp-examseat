@@ -54,8 +54,8 @@ export const Navbar = () => {
                     to={item.path}
                     className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 transition-all ${
                       active
-                        ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shadow-sm shadow-blue-100/10 dark:shadow-none'
-                        : 'text-slate-600 dark:text-slate-450 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200'
+                        ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 shadow-sm shadow-blue-100/10 dark:shadow-none'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
                     }`}
                   >
                     {item.icon}

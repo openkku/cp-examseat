@@ -2,9 +2,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { SeatMap } from '../components/room/SeatMap';
-import type { ExamResult, RoomConfigMap } from '../types';
+import type { ExamResult, RoomConfigMap, StudentExamsResponse } from '../types';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { SEAT_PALETTE } from '../lib/constants';
+import { formatBranch } from '../utils';
 
 // UI Primitives & Icons
 import { Card } from '../components/ui/Card';
@@ -268,8 +269,8 @@ export const RoomExplorer: React.FC = () => {
         return;
       }
       if (!res.ok) throw new Error("Search failed");
-      const data = await res.json();
-      setSearchResults(data || []);
+      const data: StudentExamsResponse = await res.json();
+      setSearchResults(data.exams || []);
     } catch (e) {
       console.error("Search failed", e);
       setSearchResults([]);
@@ -842,19 +843,26 @@ export const RoomExplorer: React.FC = () => {
                 </div>
               </div>
 
-              {/* Student ID Card */}
-              <div className="bg-blue-50/50 dark:bg-blue-950/30 border border-blue-100/50 dark:border-blue-900/40 rounded-2xl p-4 text-center relative overflow-hidden shadow-inner dark:shadow-none">
-                <span className="text-[9px] font-black text-blue-500 dark:text-blue-400 uppercase tracking-wider mb-1.5 block leading-none">รหัสนักศึกษา</span>
-                <a
-                  href={`/?id=${selectedSeat.student_id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-lg font-mono font-black text-blue-900 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-400 hover:underline underline-offset-4 flex items-center justify-center gap-1.5"
-                  title="ดูตารางสอบทั้งหมดของ นศ. รายนี้"
-                >
-                  {selectedSeat.student_id}
-                  <ExternalLink className="w-4 h-4 opacity-40 hover:opacity-100 transition-opacity" />
-                </a>
+               {/* Student ID Card */}
+              <div className="bg-blue-50/50 dark:bg-blue-950/30 border border-blue-100/50 dark:border-blue-900/40 rounded-2xl p-4 text-center relative overflow-hidden shadow-inner dark:shadow-none flex flex-col items-center justify-center gap-1.5">
+                <div>
+                  <span className="text-[9px] font-black text-blue-500 dark:text-blue-400 uppercase tracking-wider mb-1.5 block leading-none">รหัสนักศึกษา</span>
+                  <a
+                    href={`/?id=${selectedSeat.student_id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-lg font-mono font-black text-blue-900 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-400 hover:underline underline-offset-4 flex items-center justify-center gap-1.5"
+                    title="ดูตารางสอบทั้งหมดของ นศ. รายนี้"
+                  >
+                    {selectedSeat.student_id}
+                    <ExternalLink className="w-4 h-4 opacity-40 hover:opacity-100 transition-opacity" />
+                  </a>
+                </div>
+                {selectedSeat.branch && (
+                  <Badge variant="indigo" size="sm" className="font-extrabold uppercase font-sans tracking-wide">
+                    {formatBranch(selectedSeat.branch)}
+                  </Badge>
+                )}
               </div>
 
               {/* Subject Details */}

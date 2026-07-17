@@ -12,9 +12,12 @@ type ExamSchedule struct {
 	StudentID   string `json:"student_id"`
 	Seat        string `json:"seat"`
 	Note        string `json:"note"`
+	Branch      string `json:"branch"`
 }
 
 type RoundOption struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
 }
+
+

@@ -13,6 +13,7 @@ interface Props {
   subjectName?: string;
   onViewMap?: () => void;
   onJumpToExplorer?: () => void;
+  isPassed?: boolean;
 }
 
 export const ExamCard: React.FC<Props> = ({ 
@@ -20,7 +21,8 @@ export const ExamCard: React.FC<Props> = ({
   configMap, 
   subjectName, 
   onViewMap, 
-  onJumpToExplorer 
+  onJumpToExplorer,
+  isPassed = false
 }) => {
   
   // 1. Resolve special status
@@ -76,7 +78,9 @@ export const ExamCard: React.FC<Props> = ({
   return (
     <Card 
       borderVariant={cardBorder} 
-      className="flex flex-col md:flex-row shadow-xl dark:shadow-none hover:shadow-2xl dark:hover:shadow-none transition-all duration-300 w-full"
+      className={`flex flex-col md:flex-row shadow-xl dark:shadow-none hover:shadow-2xl dark:hover:shadow-none transition-all duration-300 w-full ${
+        isPassed ? 'opacity-40 filter grayscale pointer-events-none shadow-none hover:shadow-none hover:translate-y-0' : ''
+      }`}
     >
       {/* LEFT: Details Panel */}
       <div className={`p-6 md:w-[38%] flex flex-col border-b md:border-b-0 md:border-r border-slate-200/50 dark:border-slate-800/60 ${detailBg} z-10`}>

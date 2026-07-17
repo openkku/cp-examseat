@@ -12,7 +12,8 @@ func (d *Database) GetSeatsByID(ctx context.Context, opts base.SeatsOptions) ([]
         SELECT 
             e.sheet, e.date, e.time, e.room, e.subject, e.section, e.student_id, e.seat, e.note,
             COALESCE(s.name, '') as subject_name,
-            e.exam_round
+            e.exam_round,
+            COALESCE(e.branch, '') as branch
         FROM exams e
         LEFT JOIN subjects s 
             ON e.subject = s.id 
@@ -55,6 +56,7 @@ func (d *Database) GetSeatsByID(ctx context.Context, opts base.SeatsOptions) ([]
 			&s.Note,
 			&s.SubjectName,
 			&s.ExamRound,
+			&s.Branch,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning seats: %w", err)
@@ -74,7 +76,8 @@ func (d *Database) GetSeats(ctx context.Context, opts base.ExploreOptions) ([]da
             SELECT 
                 e.sheet, e.date, e.time, e.room, e.subject, e.section, e.student_id, e.seat, e.note,
                 COALESCE(s.name, '') as subject_name,
-                e.exam_round
+                e.exam_round,
+                COALESCE(e.branch, '') as branch
             FROM exams e
             LEFT JOIN subjects s 
                 ON e.subject = s.id 
@@ -111,6 +114,7 @@ func (d *Database) GetSeats(ctx context.Context, opts base.ExploreOptions) ([]da
 			&s.Note,
 			&s.SubjectName,
 			&s.ExamRound,
+			&s.Branch,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning seats: %w", err)

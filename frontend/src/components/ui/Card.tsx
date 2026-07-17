@@ -30,7 +30,7 @@ export const Card: React.FC<CardProps> = ({
   };
 
   const hoverStyles = hover
-    ? 'hover:-translate-y-0.5 hover:shadow-xl hover:border-slate-300/50 dark:hover:border-slate-700/60 shadow-md dark:shadow-none'
+    ? 'hover:-translate-y-0.5 hover:shadow-xl dark:hover:shadow-none hover:border-slate-300/50 dark:hover:border-slate-700/60 shadow-md dark:shadow-none'
     : 'shadow-sm dark:shadow-none';
 
   return (

@@ -61,7 +61,7 @@ export const StatsPage: React.FC = () => {
 
   // Sort state for the global data table
   const [sortKey, setSortKey] = useState<'label' | 'total'>('label');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     fetch('/api/stats')
@@ -124,10 +124,30 @@ export const StatsPage: React.FC = () => {
       };
     });
 
+    const parseRoundID = (id: string) => {
+      const parts = id.split('_');
+      if (parts.length !== 3) {
+        return { year: 0, semester: 0, typeWeight: 0 };
+      }
+      const year = parseInt(parts[2], 10) || 0;
+      const semester = parseInt(parts[1], 10) || 0;
+      const typeWeight = parts[0] === 'final' ? 2 : parts[0] === 'mid' ? 1 : 0;
+      return { year, semester, typeWeight };
+    };
+
+    const compareRounds = (idA: string, idB: string) => {
+      const a = parseRoundID(idA);
+      const b = parseRoundID(idB);
+      if (a.year !== b.year) return a.year - b.year;
+      if (a.semester !== b.semester) return a.semester - b.semester;
+      if (a.typeWeight !== b.typeWeight) return a.typeWeight - b.typeWeight;
+      return idA.localeCompare(idB);
+    };
+
     list.sort((a, b) => {
       let comparison = 0;
       if (sortKey === 'label') {
-        comparison = a.label.localeCompare(b.label);
+        comparison = compareRounds(a.id, b.id);
       } else {
         comparison = a.total - b.total;
       }

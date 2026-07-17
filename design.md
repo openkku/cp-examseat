@@ -5,40 +5,37 @@
 
 ---
 
-## 1. Design Identity — "Neon Aurora"
+## 1. Design Identity — "Minimal Blue-Navy"
 
 ### Philosophy
 
-> **"สะอาด ทันสมัย มีชีวิตชีวา"** — Clean minimalism meets vibrant energy.
-> Inspired by: Linear.app, Vercel Dashboard, Arc Browser, Raycast
+> **"สะอาด ทันสมัย โล่งสบายตา"** — Clean minimalism with balanced visual hierarchy.
+> Inspired by: Linear.app, Vercel Dashboard, and refined dark/light mode interfaces.
 
 ### Color Palette
 
 | Token | Light | Dark |
 |-------|-------|------|
 | Background | `#FAFBFE` Lavender Mist | `#0A0F24` Deep Navy |
-| Surface | `#FFFFFF` | `#141B35` Navy Abyss |
+| Surface | `#FFFFFF` Pure White | `#141B35` Navy Abyss |
 | Surface Hover | `#F4F6FA` | `#1E2647` |
 | Border | `#E8ECF4` Frost | `#232E52` Graphite |
 | Text Primary | `#0F172A` Ink | `#F1F5F9` Snow |
 | Text Secondary | `#64748B` Pewter | `#A5B4D4` Silver |
 | Text Muted | `#94A3B8` Fog | `#6475B2` Ash |
 
-**Accent Colors**
+**Organic Accent Colors**
 
-| Name | Value | Usage |
-|------|-------|-------|
-| Primary | `#6366F1 → #818CF8` | Brand gradient, active nav, CTA |
-| Secondary | `#06B6D4 → #22D3EE` | Cyan highlights, secondary actions |
-| Success | `#10B981` Emerald | Positive states, available seats |
-| Warning | `#F59E0B` Amber | Warnings, notes, quarantine |
-| Danger | `#EF4444` Red | Errors, seat target pulse |
-| Info | `#3B82F6` Blue | General info badges, links |
+| Name | Light (Soft Pastel) | Dark (Muted Contrast) | Usage |
+|------|-------|-------|-------|
+| Subjects | `bg-blue-500/10` / `text-blue-600` | `bg-blue-500/20` / `text-blue-300` | Exams count |
+| Rooms | `bg-emerald-500/10` / `text-emerald-600` | `bg-emerald-500/20` / `text-emerald-300` | Rooms count |
+| Days | `bg-violet-500/10` / `text-violet-600` | `bg-violet-500/20` / `text-violet-300` | Days count |
+| Branch | `#F1F5F9` bg / `#475569` text | `bg-indigo-500/15` / `text-indigo-300` | Major / Branch badge |
 
-**Brand Gradient (Aurora Borealis)**
+**Color Accents**
 ```
-#6366F1 → #06B6D4 → #10B981
-Indigo  → Cyan     → Emerald
+Indigo/Blue  → Emerald/Teal  → Violet/Rose
 ```
 
 Used in: Logo badge, hero subtitle, seat-detail accent stripe, glassmorphic card glow meshes.
@@ -119,7 +116,8 @@ frontend/src/
 │   │   └── PageTransition.tsx # Route entrance animation wrapper
 │   │
 │   ├── search/                # StudentSearch sub-components
-│   │   └── SearchHistory.tsx  # History dropdown list
+│   │   ├── SearchHistory.tsx  # History dropdown list
+│   │   └── StudentProfileCard.tsx  # Post-search student identity + branch card
 │   │
 │   ├── exam/                  # Exam display
 │   │   ├── ExamCard.tsx       # Left details + Right SeatMap preview
@@ -259,44 +257,118 @@ Background: Two large aurora blur circles (indigo + cyan) at
 
 ### 5.1 StudentSearch (`/`)
 
-**Purpose**: Primary landing page — search exam seat by student ID.
+**Purpose**: Primary landing page — search exam seat by student ID, with prominent student branch/major display after search.
+
+#### Design Concept
+
+> After searching, the page transitions from a "search landing" to a "student profile + exam schedule" view.
+> The key new component is the **Student Profile Card** — a wide glassmorphic banner that appears between the search card and exam results, showing the student's identity, branch/major, and exam count at a glance.
+
+#### Student Profile Card Specification
+
+This new component (`<StudentProfileCard>`) appears only after a successful search with results.
+
+```
+┌── Student Profile Card (full content width, minimal blue-navy style) ┐
+│                                                                      │
+│  ┌──────┐                                                            │
+│  │  68  │  รหัสนักศึกษา (Student ID)          ┌──────────────────┐  │
+│  │avatar│  683380031-4                        │ Computer Science │  │
+│  │square│  (mono, tracking-wider)             │ (navy/slate badge)│  │
+│  └──────┘                                     └──────────────────┘  │
+│                                                                      │
+│  3 รายวิชา       2 ห้องสอบ       2 วันสอบ (spaced row, no icons)    │
+│                                                                      │
+│  [▼ เพิ่มตารางสอบลงปฏิทิน] (minimal flat accordion)                  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Props / Data:**
+| Field | Source | Display |
+|-------|--------|---------|
+| Student ID | `studentId` state | Monospace, bold, `text-lg` |
+| Branch | `branch` from API → `formatBranch()` | Slate/Indigo pill badge (no icon), `font-bold` |
+| Exam Count | `results.length` | Text: "{n} รายวิชา" (no icons) |
+| Room Count | `new Set(results.map(r => r.room)).size` | Text: "{n} ห้องสอบ" (no icons) |
+| Exam Days | `new Set(results.map(r => r.date)).size` | Text: "{n} วันสอบ" (no icons) |
+
+**Styling Tokens:**
+```
+Card:           pure white / navy surface (bg-white dark:bg-slate-900), max-w-3xl, w-full, p-6, rounded-2xl, border-slate-200 dark:border-slate-800
+Avatar Box:     w-12 h-12, bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500
+                text-white font-black, rounded-full, flex items-center justify-center
+                Content: first 2 chars of student ID (e.g. "68")
+Branch Badge:   bg-slate-100 dark:bg-indigo-500/15
+                text-slate-700 dark:text-indigo-300
+                border border-slate-200 dark:border-indigo-500/30
+                px-3.5 py-1 rounded-full font-bold text-xs
+Stat Chips:
+  - Subjects:   bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300
+                border border-blue-200/50 dark:border-blue-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold
+  - Rooms:      bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300
+                border border-emerald-200/50 dark:border-emerald-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold
+  - Days:       bg-violet-500/10 dark:bg-violet-500/20 text-violet-650 dark:text-violet-300
+                border border-violet-200/50 dark:border-violet-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold
+```
+
+**Animation:** Entrance: `fade-in + slide-up 400ms ease-out` when results load.
 
 #### Desktop (≥768px)
 
 ```
-┌──────────────────────────────────────────────┐
-│                 Navbar                        │
-├──────────────────────────────────────────────┤
-│                                               │
-│    ◌ Aurora gradient mesh (animated blurs)    │
-│                                               │
-│           ✨ ค้นหาที่นั่งสอบ                   │  ← text-5xl
-│      วิทยาลัยการคอมพิวเตอร์ มข.              │  ← gradient text
-│                                               │
-│    ┌──── Glass Search Card (max-w-lg) ────┐  │
-│    │  [Exam Round ▾]                       │  │
-│    │  [  🔍  653380xxx-x  ]  ← mono,xl    │  │
-│    │  [ ══════ ค้นหา ══════ ] ← Button lg  │  │
-│    │  ── Calendar Actions (post-search) ── │  │
-│    │  [▼ เพิ่มตารางสอบลงปฏิทิน (collapsible)] │  │
-│    └───────────────────────────────────────┘  │
-│                                               │
-│    ┌─ Stats Quick Glance (3-col grid) ────┐  │
-│    │ ┌────────┐ ┌──────────┐ ┌──────────┐ │  │
-│    │ │ 2,847  │ │ Top Subj │ │ Cohorts  │ │  │
-│    │ │ คน     │ │ list     │ │ breakdown│ │  │
-│    │ └────────┘ └──────────┘ └──────────┘ │  │
-│    └──────────────────────────────────────┘  │
-│                                               │
-│    ┌── ExamCard ─────────────────────────┐   │
-│    │  LEFT 1/3          │  RIGHT 2/3     │   │
-│    │  Subject info      │  SeatMap       │   │
-│    │  Date / Time       │  (pan/zoom)    │   │
-│    │  Room / Seat       │                │   │
-│    │  [Explorer] [Map]  │                │   │
-│    └────────────────────┴────────────────┘   │
-│                                               │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│                       Navbar                          │
+├──────────────────────────────────────────────────────┤
+│                                                        │
+│      ◌ Aurora gradient mesh (animated blurs)          │
+│                                                        │
+│             ✨ ค้นหาที่นั่งสอบ                         │  ← text-5xl
+│        วิทยาลัยการคอมพิวเตอร์ มข.                    │  ← gradient text
+│                                                        │
+│  ┌──── Glass Search Card (max-w-lg) ──────────────┐  │
+│  │  [Exam Round ▾]                                 │  │
+│  │  ┌────────────────────────┬──────────────────┐  │  │
+│  │  │  🔍  683380031-4       │  ค้นหาที่นั่งสอบ  │  │  │  ← inline input+button
+│  │  └────────────────────────┴──────────────────┘  │  │
+│  └─────────────────────────────────────────────────┘  │
+│                                                        │
+│  ┌──── Student Profile Card (max-w-3xl) ──────────┐  │  ← NEW: appears after search
+│  │ ┌────┐  Student ID             ┌──────────────┐│  │
+│  │ │ 68 │  683380031-4            │🎓 Computer   ││  │
+│  │ └────┘                          │   Science    ││  │
+│  │                                 └──────────────┘│  │
+│  │ [📋 3 รายวิชา] [🏫 2 ห้อง] [📅 2 วัน]            │  │
+│  │ [▼ เพิ่มตารางสอบลงปฏิทิน]                        │  │
+│  └─────────────────────────────────────────────────┘  │
+│                                                        │
+│    ── ตารางสอบทั้งหมด (3 รายการ) ──                   │  ← section label
+│                                                        │
+│  ┌── ExamCard ────────────────────────────────────┐  │
+│  │  LEFT 38%             │  RIGHT 62%             │  │
+│  │  Subject name         │  SeatMap               │  │
+│  │  Code · Sec badge     │  (pan/zoom)            │  │
+│  │  📅 Date  ⏰ Time     │                        │  │
+│  │  ┌─ Room ──── Seat ─┐│                        │  │
+│  │  │ CP.9127     A12  ││                        │  │
+│  │  └──────────────────┘│                        │  │
+│  │  [🗺️ Explorer] [📷]  │                        │  │
+│  └───────────────────────┴────────────────────────┘  │
+│                                                        │
+│  ┌── ExamCard ────────────────────────────────────┐  │
+│  │  ...next exam...                                │  │
+│  └─────────────────────────────────────────────────┘  │
+│                                                        │
+└──────────────────────────────────────────────────────┘
+
+── When NO results yet (initial state): ─────────────────
+
+│  ┌─ Stats Quick Glance (3-col grid) ──────────────┐  │
+│  │ ┌──────────┐ ┌──────────────┐ ┌──────────────┐ │  │
+│  │ │ 2,847    │ │ Top Subjects │ │ Cohorts      │ │  │
+│  │ │ คน       │ │ list         │ │ breakdown    │ │  │
+│  │ │ 14 ห้อง  │ │              │ │              │ │  │
+│  │ └──────────┘ └──────────────┘ └──────────────┘ │  │
+│  └────────────────────────────────────────────────┘  │
 ```
 
 #### Mobile (<768px)
@@ -306,16 +378,43 @@ Background: Two large aurora blur circles (indigo + cyan) at
 │         Navbar (compact)    │
 ├────────────────────────────┤
 │                             │
-│   ✨ ค้นหาที่นั่งสอบ        │  ← text-3xl (smaller)
+│   ✨ ค้นหาที่นั่งสอบ        │  ← text-3xl
 │   วิทยาลัยการคอมพิวเตอร์   │
 │                             │
-│  ┌── Glass Search Card ──┐ │
-│  │ [Exam Round ▾]         │ │  ← full width
-│  │ [  653380xxx-x  ]      │ │
-│  │ [▼ เพิ่มตารางสอบลงปฏิทิน (collapsible)] │ │
+│  ┌── Glass Search Card ──┐ │  ← full width, max-w-lg
+│  │ [Exam Round ▾]         │ │
+│  │ ┌────────────┬───────┐ │ │
+│  │ │ 683380xx.. │ค้นหา  │ │ │  ← inline input+button
+│  │ └────────────┴───────┘ │ │
 │  └────────────────────────┘ │
 │                             │
-│  ┌── Stats (1-col stack) ─┐ │  ← grid-cols-1 on mobile
+│  ┌── Student Profile ─────┐ │  ← NEW: compact mobile version
+│  │ ┌──┐ 683380031-4       │ │
+│  │ │68│ ┌──────────────┐  │ │
+│  │ └──┘ │🎓 Comp. Sci. │  │ │  ← abbreviated on narrow
+│  │      └──────────────┘  │ │
+│  │ [📋 3] [🏫 2] [📅 2]    │ │  ← compact chips
+│  │ [▼ ปฏิทิน]              │ │
+│  └────────────────────────┘ │
+│                             │
+│  ── 3 รายการ ──             │
+│                             │
+│  ┌── ExamCard (stacked) ─┐ │
+│  │  Subject info          │ │
+│  │  Date / Time           │ │
+│  │  Room / Seat           │ │
+│  │  [Explorer] [Map]      │ │
+│  │  ─ border-b ─          │ │
+│  │  SeatMap preview       │ │  ← h-48 sm:h-64
+│  └────────────────────────┘ │
+│                             │
+├────────────────────────────┤
+│  MobileTabBar (fixed)       │
+└────────────────────────────┘
+
+── When NO results yet (initial state): ─────────
+
+│  ┌── Stats (1-col stack) ─┐ │
 │  │ ┌── นักศึกษา 2,847 ──┐ │ │
 │  │ └────────────────────┘ │ │
 │  │ ┌── ห้องสอบ 14 ──────┐ │ │
@@ -325,29 +424,57 @@ Background: Two large aurora blur circles (indigo + cyan) at
 │  │ ┌── Cohorts ─────────┐ │ │
 │  │ └────────────────────┘ │ │
 │  └────────────────────────┘ │
-│                             │
-│  ┌── ExamCard (stacked) ─┐ │
-│  │  Subject info          │ │  ← full width, vertical
-│  │  Date / Time (2-col)   │ │
-│  │  Room / Seat           │ │
-│  │  [Explorer] [Map]      │ │
-│  │  ─ border-b ─          │ │
-│  │  SeatMap preview       │ │  ← h-64, below details
-│  │  (touch pan/zoom)      │ │
-│  └────────────────────────┘ │
-│                             │
-├────────────────────────────┤
-│  MobileTabBar (fixed)       │
-└────────────────────────────┘
 ```
+
+#### Search Card Redesign: Inline Input+Button
+
+The search button is now **inline** with the student ID input, forming a single compact row, and uses a standard button element with white text and icon:
+
+```tsx
+// Layout: flex-row with input flex-1 and button shrink-0
+<div className="flex items-center gap-2">
+  <Input className="flex-1 font-mono text-center text-xl" ... />
+  <button className="shrink-0 py-3 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white flex items-center justify-center gap-2 h-[50px]">
+    <Search className="w-5 h-5 text-white" />
+    <span>ค้นหา</span>
+  </button>
+</div>
+```
+
+#### Stats Summary Dashboard: Rainbow Cards
+On the initial page state, statistical summary cards display with colorful left-border accent bars and matching color numbers:
+- **Headcount Card**: `border-l-blue-500` / `text-blue-600 dark:text-blue-400`
+- **Rooms Card**: `border-l-emerald-500` / `text-emerald-600 dark:text-emerald-400`
+- **Top Subjects Card**: `border-l-sky-500` / `bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-300`
+- **Cohort Breakdown Card**: `border-l-violet-500` / `text-violet-600 dark:text-violet-400`
+
+#### Completed Exams Filter: "ซ่อนวิชาที่สอบผ่านไปแล้ว"
+A checklist toggle appears directly above search results to control passed exam visibility:
+- **Default State (Unchecked / disabled)**: All exams (including past ones) display in normal colors sorted chronologically.
+- **Enabled State (Checked)**: Exams that have already passed (according to current local time) are pushed to the bottom of the list and grayed out using `opacity-40 filter grayscale pointer-events-none`.
+- **Sync**: State is saved in `localStorage` under `hide_passed_exams`.
+
+This reduces vertical height of the search card and feels more like a modern search bar.
+
+#### Key Design Changes from Previous Version
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| Branch display | Small badge inside search card, easy to miss | **Student Profile Card** — dedicated full-width banner |
+| Search button | Full-width below input | Inline with input (search bar style) |
+| Calendar actions | Inside search card | Moved to Student Profile Card |
+| Stat chips | Not present | Shows exam count, room count, exam days |
+| Profile avatar | Not present | Gradient circle with year prefix (e.g. "68") |
+| Post-search flow | Search card → exams | Search card → **Profile Card** → exams |
 
 **Key Mobile Adaptations:**
 - Hero title shrinks from `text-5xl` → `text-3xl`
 - Search card stays centered, `max-w-lg`, full-width padding `p-6`
-- Stats grid switches from `md:grid-cols-3` → `grid-cols-1`
+- Student Profile Card: avatar + ID on one line, branch badge below, stat chips in compact row
+- Stats grid switches from `md:grid-cols-3` → `grid-cols-1` (initial state only)
 - ExamCard switches from `md:flex-row` → `flex-col` (details on top, map below)
-- SeatMap preview height: `h-64` on mobile vs `h-auto` filling card on desktop
-- Calendar action section is collapsible by default to reduce mobile height, expanding to reveal subscription and download details.
+- SeatMap preview height: `h-48 sm:h-64` on mobile vs `h-auto` filling card on desktop
+- Calendar action section is collapsible by default to reduce mobile height
 - Content area has `pb-20` to clear MobileTabBar
 
 ---

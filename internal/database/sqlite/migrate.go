@@ -12,6 +12,7 @@ func (d *Database) migrate() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         exam_round TEXT,
         student_id TEXT,
+        branch TEXT,
         sheet TEXT,
         date TEXT, 
         time TEXT,
@@ -41,6 +42,55 @@ func (d *Database) migrate() {
     `
 	if _, err := d.db.Exec(schema); err != nil {
 		log.Fatalf("❌ Error creating schema: %v", err)
+	}
+
+	// 1. Check if exams has branch column. If not, add it.
+	var examsHasBranch bool
+	rows, err := d.db.Query("PRAGMA table_info(exams);")
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var cid int
+			var name, ctype string
+			var notnull, pk int
+			var dfltVal any
+			if err := rows.Scan(&cid, &name, &ctype, &notnull, &dfltVal, &pk); err == nil {
+				if name == "branch" {
+					examsHasBranch = true
+				}
+			}
+		}
+	}
+	if !examsHasBranch {
+		log.Println("🔧 Adding branch column to exams table...")
+		if _, err := d.db.Exec("ALTER TABLE exams ADD COLUMN branch TEXT;"); err != nil {
+			log.Printf("⚠️ Warning: Could not add branch column to exams: %v", err)
+		}
+	}
+
+	// 2. If students table exists, update exams.branch with students.branch, then drop students table
+	var studentsExists bool
+	rowsCheck, err := d.db.Query("SELECT name FROM sqlite_master WHERE type='table' AND name='students';")
+	if err == nil {
+		defer rowsCheck.Close()
+		if rowsCheck.Next() {
+			studentsExists = true
+		}
+	}
+	if studentsExists {
+		log.Println("📦 Migrating branch data from students table back to exams table...")
+		_, err = d.db.Exec(`
+			UPDATE exams 
+			SET branch = (SELECT branch FROM students WHERE students.id = exams.student_id)
+			WHERE branch IS NULL OR branch = '';
+		`)
+		if err != nil {
+			log.Printf("⚠️ Warning: Could not copy branch data from students to exams: %v", err)
+		}
+		log.Println("🧹 Dropping students table...")
+		if _, err := d.db.Exec("DROP TABLE IF EXISTS students;"); err != nil {
+			log.Printf("⚠️ Warning: Could not drop students table: %v", err)
+		}
 	}
 
 	// Enable WAL mode and other optimizations

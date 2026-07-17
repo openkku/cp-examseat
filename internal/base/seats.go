@@ -12,6 +12,7 @@ type Seats struct {
 	Seat        string
 	Note        string
 	ExamRound   string
+	Branch      string
 }
 
 type SeatsOptions struct {

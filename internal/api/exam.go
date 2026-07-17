@@ -32,9 +32,9 @@ func HandleGetExam(d database.Database, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	results := []seater.ExamSchedule{}
+	exams := []seater.ExamSchedule{}
 	for _, s := range seats {
-		results = append(results, seater.ExamSchedule{
+		exams = append(exams, seater.ExamSchedule{
 			Sheet:       s.Sheet,
 			Date:        s.Date,
 			Time:        s.Time,
@@ -45,9 +45,10 @@ func HandleGetExam(d database.Database, w http.ResponseWriter, r *http.Request) 
 			StudentID:   s.StudentID,
 			Seat:        s.Seat,
 			Note:        s.Note,
+			Branch:      s.Branch,
 		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
+	json.NewEncoder(w).Encode(exams)
 }

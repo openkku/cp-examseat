@@ -132,10 +132,13 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 			// Read students roster
 			for dataRow < len(rows) {
 				rowCells := rows[dataRow]
-				var studentID, seat, note string
+				var studentID, seat, note, branch string
 
 				if len(rowCells) > 1 {
 					studentID = strings.TrimSpace(rowCells[1])
+				}
+				if len(rowCells) > 3 {
+					branch = strings.TrimSpace(rowCells[3])
 				}
 				if len(rowCells) > 4 {
 					seat = strings.TrimSpace(rowCells[4])
@@ -163,6 +166,7 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 						Seat:        seat,
 						Note:        note,
 						ExamRound:   roundID,
+						Branch:      branch,
 					})
 				}
 

@@ -63,6 +63,7 @@ func main() {
 				Subject:     s.Subject,
 				SubjectName: s.SubjectName,
 				StudentID:   s.StudentID,
+				Branch:      s.Branch,
 			}
 		}
 		// 3. GENERATE STATS (Pass the labels map)

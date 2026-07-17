@@ -299,6 +299,13 @@ func GenerateDashboardStats(exams []seater.ExamSchedule, roundLabels map[string]
 		response.Stats[id] = finalBucket
 	}
 
+	// Sort the non-global options chronologically descending
+	if len(response.Options) > 1 {
+		sort.Slice(response.Options[1:], func(i, j int) bool {
+			return seater.CompareRounds(response.Options[1+i].ID, response.Options[1+j].ID)
+		})
+	}
+
 	CachedStats = response
 	fmt.Println("✅ Stats Ready!")
 }

@@ -3,7 +3,9 @@ package sqlite
 import (
 	"context"
 	"cpkkuview/internal/database"
+	"cpkkuview/internal/seater"
 	"fmt"
+	"sort"
 )
 
 func (d *Database) PurgeRound(ctx context.Context, roundID string) error {
@@ -43,8 +45,8 @@ func (d *Database) AddRound(ctx context.Context, roundID string, displayName str
 
 	// Prepare statement for exams
 	stmtExam, err := tx.PrepareContext(ctx, `
-		INSERT OR REPLACE INTO exams (exam_round, student_id, sheet, date, time, room, subject, section, seat, note)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT OR REPLACE INTO exams (exam_round, student_id, branch, sheet, date, time, room, subject, section, seat, note)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return fmt.Errorf("failed to prepare insert exam statement: %w", err)
@@ -63,7 +65,7 @@ func (d *Database) AddRound(ctx context.Context, roundID string, displayName str
 	savedSubjects := make(map[string]bool)
 
 	for _, s := range seats {
-		_, err := stmtExam.ExecContext(ctx, roundID, s.StudentID, s.Sheet, s.Date, s.Time, s.Room, s.Subject, s.Section, s.Seat, s.Note)
+		_, err := stmtExam.ExecContext(ctx, roundID, s.StudentID, s.Branch, s.Sheet, s.Date, s.Time, s.Room, s.Subject, s.Section, s.Seat, s.Note)
 		if err != nil {
 			return fmt.Errorf("failed to insert exam (student: %s, subject: %s): %w", s.StudentID, s.Subject, err)
 		}
@@ -103,6 +105,11 @@ func (d *Database) GetRounds(ctx context.Context) ([]database.RoundOption, error
 		}
 		rounds = append(rounds, ro)
 	}
+
+	sort.Slice(rounds, func(i, j int) bool {
+		return seater.CompareRounds(rounds[i].ID, rounds[j].ID)
+	})
+
 	return rounds, nil
 }
 
@@ -111,7 +118,8 @@ func (d *Database) GetAllSeats(ctx context.Context) ([]database.Seats, error) {
 		SELECT 
 			e.sheet, e.date, e.time, e.room, e.subject, e.section, e.student_id, e.seat, e.note,
 			COALESCE(s.name, '') as subject_name,
-			e.exam_round
+			e.exam_round,
+			COALESCE(e.branch, '') as branch
 		FROM exams e
 		LEFT JOIN subjects s ON e.subject = s.id AND e.exam_round = s.exam_round
 	`
@@ -136,6 +144,7 @@ func (d *Database) GetAllSeats(ctx context.Context) ([]database.Seats, error) {
 			&s.Note,
 			&s.SubjectName,
 			&s.ExamRound,
+			&s.Branch,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan seat: %w", err)
