@@ -47,15 +47,15 @@ export const SearchHistory: React.FC<SearchHistoryProps> = ({
             onClick={() => onSelect(item)}
             className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800/40 cursor-pointer group flex items-center justify-between transition-colors last:border-0"
           >
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-2.5 md:gap-3 min-w-0 flex-1">
               {/* Clock/history icon */}
               <Clock className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0" />
               {/* Student ID */}
-              <span className="font-mono text-sm font-black text-slate-700 dark:text-slate-200 tracking-wider">
+              <span className="font-mono text-sm font-black text-slate-700 dark:text-slate-200 tracking-wider shrink-0">
                 {item.studentId}
               </span>
               {/* Round badge */}
-              <Badge variant="blue" size="sm" className="truncate max-w-[150px] md:max-w-[180px] font-extrabold">
+              <Badge variant="blue" size="sm" className="truncate max-w-[90px] xs:max-w-[130px] sm:max-w-[160px] md:max-w-[200px] font-extrabold shrink">
                 {item.roundLabel}
               </Badge>
             </div>

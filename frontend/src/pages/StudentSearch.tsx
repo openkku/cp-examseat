@@ -307,8 +307,8 @@ export const StudentSearch = () => {
             <label className="block text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
               รหัสนักศึกษา (Student ID)
             </label>
-            <div className="flex items-center gap-2.5 relative">
-              <div className="flex-1 relative">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 relative">
+              <div className="w-full md:flex-1 relative">
                 <input
                   type="text"
                   placeholder="653380123-4"
@@ -334,7 +334,7 @@ export const StudentSearch = () => {
               <button
                 onClick={handleManualSearch}
                 disabled={loading || !selectedRound}
-                className="shrink-0 py-3 px-6 rounded-xl font-bold text-sm whitespace-nowrap h-[50px] flex items-center justify-center bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white border-none shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all duration-200 cursor-pointer gap-2"
+                className="w-full md:w-auto shrink-0 py-3 px-6 rounded-xl font-bold text-sm whitespace-nowrap h-[50px] flex items-center justify-center bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white border-none shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all duration-200 cursor-pointer gap-2"
               >
                 {loading ? '...' : (
                   <>

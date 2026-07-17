@@ -428,13 +428,15 @@ Stat Chips:
 
 #### Search Card Redesign: Inline Input+Button
 
-The search button is now **inline** with the student ID input, forming a single compact row, and uses a standard button element with white text and icon:
+The search button and student ID input are **responsive**—stacking vertically (`flex-col`) on mobile to maximize input and recent history dropdown width, and aligning inline (`md:flex-row`) on desktop/tablet:
 
 ```tsx
-// Layout: flex-row with input flex-1 and button shrink-0
-<div className="flex items-center gap-2">
-  <Input className="flex-1 font-mono text-center text-xl" ... />
-  <button className="shrink-0 py-3 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white flex items-center justify-center gap-2 h-[50px]">
+// Layout: flex-col (mobile) -> md:flex-row (desktop)
+<div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+  <div className="w-full md:flex-1 relative">
+    <Input className="w-full font-mono text-center text-xl" ... />
+  </div>
+  <button className="w-full md:w-auto shrink-0 py-3 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white flex items-center justify-center gap-2 h-[50px]">
     <Search className="w-5 h-5 text-white" />
     <span>ค้นหา</span>
   </button>
@@ -461,7 +463,7 @@ This reduces vertical height of the search card and feels more like a modern sea
 | Aspect | Before | After |
 |--------|--------|-------|
 | Branch display | Small badge inside search card, easy to miss | **Student Profile Card** — dedicated full-width banner |
-| Search button | Full-width below input | Inline with input (search bar style) |
+| Search button | Full-width below input | Stacks on mobile, inline on desktop |
 | Calendar actions | Inside search card | Moved to Student Profile Card |
 | Stat chips | Not present | Shows exam count, room count, exam days |
 | Profile avatar | Not present | Gradient circle with year prefix (e.g. "68") |
@@ -470,6 +472,7 @@ This reduces vertical height of the search card and feels more like a modern sea
 **Key Mobile Adaptations:**
 - Hero title shrinks from `text-5xl` → `text-3xl`
 - Search card stays centered, `max-w-lg`, full-width padding `p-6`
+- Search input and button stack vertically on mobile to prevent squeezing history dropdown
 - Student Profile Card: avatar + ID on one line, branch badge below, stat chips in compact row
 - Stats grid switches from `md:grid-cols-3` → `grid-cols-1` (initial state only)
 - ExamCard switches from `md:flex-row` → `flex-col` (details on top, map below)
