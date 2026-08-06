@@ -30,6 +30,8 @@ for SHEET_NAME in wb.sheetnames:
 
         # 1️⃣ Find next "ใบรายชื่อ"
         for row in range(row_ptr, ws.max_row + 1):
+            if ws.row_dimensions[row].hidden:
+                continue
             for col in range(1, ws.max_column + 1):
                 cell = ws.cell(row=row, column=col).value
                 if isinstance(cell, str) and "ใบรายชื่อ" in cell:
@@ -46,6 +48,8 @@ for SHEET_NAME in wb.sheetnames:
         room = subject = section = time = None
 
         for r in range(start_row, start_row + 10):
+            if ws.row_dimensions[r].hidden:
+                continue
             val_a = ws[f"A{r}"].value
             val_b = ws[f"B{r}"].value
 
@@ -72,7 +76,7 @@ for SHEET_NAME in wb.sheetnames:
 
             if val_a and "เวลาสอบ" in str(val_a):
                 time_raw = ws[f"B{r}"].value or None
-                m = re.sub(" น\.", "", time_raw) if time_raw else None
+                m = re.sub(r" น\.", "", time_raw) if time_raw else None
                 time = m
 
             if val_a and "ห้องสอบ" in str(val_a):
@@ -89,7 +93,10 @@ for SHEET_NAME in wb.sheetnames:
         data_row = header_row + 1
 
         # 3️⃣ Read student rows
-        while True:
+        while data_row <= ws.max_row:
+            if ws.row_dimensions[data_row].hidden:
+                data_row += 1
+                continue
             number = ws[f"A{data_row}"].value
             student_id = ws[f"B{data_row}"].value
             branch = ws[f"D{data_row}"].value

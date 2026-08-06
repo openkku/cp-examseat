@@ -343,6 +343,89 @@ func TestExtractAndMigrateSuccess(t *testing.T) {
 	}
 }
 
+func TestExtractAndMigrateSkipHiddenRows(t *testing.T) {
+	projectRoot := "../.."
+	dataDir := filepath.Join(projectRoot, "data")
+	if err := os.MkdirAll(dataDir, 0755); err != nil {
+		t.Fatalf("Failed to create data directory: %v", err)
+	}
+
+	testDBPath := filepath.Join(dataDir, "test_exams_hidden.db")
+	db, err := sqlite.New(testDBPath)
+	if err != nil {
+		t.Fatalf("Failed to open SQLite: %v", err)
+	}
+	defer db.Close()
+
+	tempExcelPath := filepath.Join(dataDir, "test_hidden_mock.xlsx")
+	defer os.Remove(tempExcelPath)
+
+	f := excelize.NewFile()
+	sheet := "24 ส.ค. 69 (เช้า)"
+	f.NewSheet(sheet)
+
+	// Block 1 (Hidden rows 1-5)
+	f.SetCellValue(sheet, "A1", "ใบรายชื่อ")
+	f.SetCellValue(sheet, "A2", "รายวิชา")
+	f.SetCellValue(sheet, "B2", "HIDDEN101 Hidden Subject")
+	f.SetCellValue(sheet, "B3", "รหัส")
+	f.SetCellValue(sheet, "A4", "1")
+	f.SetCellValue(sheet, "B4", "993380001-1")
+	f.SetCellValue(sheet, "E4", "H1")
+	for r := 1; r <= 5; r++ {
+		f.SetRowVisible(sheet, r, false)
+	}
+
+	// Block 2 (Visible rows 10-14)
+	f.SetCellValue(sheet, "A10", "ใบรายชื่อ")
+	f.SetCellValue(sheet, "A11", "รายวิชา")
+	f.SetCellValue(sheet, "B11", "VIS101 Visible Subject")
+	f.SetCellValue(sheet, "B12", "รหัส")
+	f.SetCellValue(sheet, "A13", "1")
+	f.SetCellValue(sheet, "B13", "883380002-2")
+	f.SetCellValue(sheet, "E13", "V1")
+
+	f.DeleteSheet("Sheet1")
+	if err := f.SaveAs(tempExcelPath); err != nil {
+		t.Fatalf("Failed to save hidden mock Excel file: %v", err)
+	}
+
+	err = ExtractAndMigrate(db, tempExcelPath, "hidden_test_round", "Hidden Test")
+	if err != nil {
+		t.Fatalf("ExtractAndMigrate failed: %v", err)
+	}
+
+	queryDB, err := sql.Open("sqlite", testDBPath)
+	if err != nil {
+		t.Fatalf("Failed to open SQLite: %v", err)
+	}
+	defer queryDB.Close()
+
+	rows, err := queryDB.Query(`SELECT student_id, seat, subject FROM exams WHERE exam_round = 'hidden_test_round'`)
+	if err != nil {
+		t.Fatalf("Query failed: %v", err)
+	}
+	defer rows.Close()
+
+	count := 0
+	for rows.Next() {
+		var stID, stSeat, stSubj string
+		if err := rows.Scan(&stID, &stSeat, &stSubj); err != nil {
+			t.Fatalf("Scan failed: %v", err)
+		}
+		count++
+		if stID == "9933800011" {
+			t.Errorf("Found hidden student 9933800011 which should have been skipped!")
+		}
+		if stID != "8833800022" || stSeat != "V1" || stSubj != "VIS101" {
+			t.Errorf("Unexpected student record: id=%s, seat=%s, subj=%s", stID, stSeat, stSubj)
+		}
+	}
+	if count != 1 {
+		t.Errorf("Expected exactly 1 visible seat record, got %d", count)
+	}
+}
+
 func createMockExcelFile(t *testing.T, filePath string) {
 	f := excelize.NewFile()
 	defer f.Close()

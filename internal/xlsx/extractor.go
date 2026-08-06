@@ -41,6 +41,10 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 			// Find next "ใบรายชื่อ"
 			startRow := -1
 			for r := rowPtr; r < len(rows); r++ {
+				visible, err := f.GetRowVisible(sheetName, r+1)
+				if err == nil && !visible {
+					continue
+				}
 				found := false
 				for _, colVal := range rows[r] {
 					if strings.Contains(colVal, "ใบรายชื่อ") {
@@ -69,6 +73,10 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 			}
 
 			for r := startRow; r < limit; r++ {
+				visible, err := f.GetRowVisible(sheetName, r+1)
+				if err == nil && !visible {
+					continue
+				}
 				rowCells := rows[r]
 				if len(rowCells) == 0 {
 					continue
@@ -131,6 +139,12 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 
 			// Read students roster
 			for dataRow < len(rows) {
+				visible, err := f.GetRowVisible(sheetName, dataRow+1)
+				if err == nil && !visible {
+					dataRow++
+					continue
+				}
+
 				rowCells := rows[dataRow]
 				var studentID, seat, note, branch string
 

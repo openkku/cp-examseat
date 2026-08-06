@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func main() {
@@ -20,7 +21,7 @@ func main() {
 	filePath := os.Args[1]
 	roundID := os.Args[2]
 
-	displayName := roundID
+	displayName := formatDefaultLabel(roundID)
 	if len(os.Args) > 3 {
 		displayName = os.Args[3]
 	}
@@ -36,4 +37,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("❌ Migration failed: %v", err)
 	}
+}
+
+func formatDefaultLabel(roundID string) string {
+	parts := strings.Split(roundID, "_")
+	if len(parts) == 3 {
+		term := parts[0]
+		semester := parts[1]
+		year := parts[2]
+		if term == "mid" {
+			return fmt.Sprintf("กลางภาค %s/%s", semester, year)
+		} else if term == "final" {
+			return fmt.Sprintf("ปลายภาค %s/%s", semester, year)
+		}
+	}
+	return roundID
 }
