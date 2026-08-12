@@ -94,7 +94,7 @@ export const StatsPage: React.FC = () => {
       new Set(
         data.options
           .filter(o => o.id !== 'global')
-          .flatMap(o => data.stats[o.id]?.year_distribution.map(y => y.year) || [])
+          .flatMap(o => data.stats[o.id]?.year_distribution?.map(y => y.year) || [])
       )
     ).sort().reverse();
 
@@ -119,7 +119,7 @@ export const StatsPage: React.FC = () => {
       return {
         id: opt.id,
         label: opt.label,
-        total: stats.student_count,
+        total: stats?.student_count || 0,
         stats: stats
       };
     });
@@ -335,7 +335,7 @@ export const StatsPage: React.FC = () => {
             <div className="min-w-0">
               <span className="text-xxs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block leading-none mb-1.5">วิชาที่สอบ (Subjects)</span>
               <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-none block">
-                {currentStats.top_subjects.length} <span className="text-xs font-bold text-slate-500 dark:text-slate-400">วิชา</span>
+                {currentStats.top_subjects?.length || 0} <span className="text-xs font-bold text-slate-500 dark:text-slate-400">วิชา</span>
               </span>
             </div>
           </Card>
@@ -496,10 +496,19 @@ export const StatsPage: React.FC = () => {
 
               <div className="space-y-4">
                 {(() => {
-                  const amStat = currentStats.timeslot_distribution.find(t => t.time.includes("08.30"));
-                  const pmStat = currentStats.timeslot_distribution.find(t => t.time.includes("13.00"));
-                  const amCount = amStat ? amStat.count : 0;
-                  const pmCount = pmStat ? pmStat.count : 0;
+                  const distribution = currentStats.timeslot_distribution || [];
+                  const amCount = distribution
+                    .filter(t => {
+                      const hour = parseInt(t.time.split('.')[0] || t.time.split(':')[0], 10);
+                      return !isNaN(hour) && hour < 12;
+                    })
+                    .reduce((sum, t) => sum + t.count, 0);
+                  const pmCount = distribution
+                    .filter(t => {
+                      const hour = parseInt(t.time.split('.')[0] || t.time.split(':')[0], 10);
+                      return !isNaN(hour) && hour >= 12;
+                    })
+                    .reduce((sum, t) => sum + t.count, 0);
                   const total = (amCount + pmCount) || 1;
                   const amPercent = (amCount / total) * 100;
                   const pmPercent = (pmCount / total) * 100;
@@ -666,7 +675,7 @@ export const StatsPage: React.FC = () => {
                           <tr key={round.id} className="hover:bg-slate-50/30 dark:hover:bg-slate-950/10 transition-colors">
                             <td className="px-6 py-4 font-extrabold text-slate-800 dark:text-slate-200">{round.label}</td>
                             {activeYears.slice(0, 5).map(year => {
-                              const count = stats.year_distribution.find(y => y.year === year)?.count || 0;
+                              const count = stats?.year_distribution?.find(y => y.year === year)?.count || 0;
                               return (
                                 <td key={year} className="px-4 py-4 text-center">
                                   {count > 0 ? (
@@ -779,8 +788,8 @@ const StackedBarChart = ({ data, selectedId, onSelect, yearColors }: { data: Das
       return {
         id: opt.id,
         label: opt.label,
-        total: stats.student_count,
-        years: stats.year_distribution
+        total: stats?.student_count || 0,
+        years: stats?.year_distribution || []
       };
     });
   }, [data]);
@@ -819,7 +828,7 @@ const StackedBarChart = ({ data, selectedId, onSelect, yearColors }: { data: Das
               className="w-full max-w-[35px] sm:max-w-[45px] rounded-t-lg flex flex-col-reverse overflow-hidden shadow-inner dark:shadow-none group-hover:shadow-md transition-shadow relative bg-slate-100/30 dark:bg-slate-950/40 animate-grow-up origin-bottom"
               style={{ height: `${Math.max(heightPercent, 3)}%` }}
             >
-              {round.years.map((y) => {
+              {(round.years || []).map((y) => {
                 const segmentHeight = (y.count / round.total) * 100;
                 return (
                   <div

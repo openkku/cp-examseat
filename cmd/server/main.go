@@ -56,7 +56,8 @@ func main() {
 		allExams := make([]seater.ExamSchedule, len(allSeats))
 		for i, s := range allSeats {
 			allExams[i] = seater.ExamSchedule{
-				Sheet:       s.ExamRound,
+				Sheet:       s.Sheet,
+				ExamRound:   s.ExamRound,
 				Date:        s.Date,
 				Time:        s.Time,
 				Room:        s.Room,
@@ -118,11 +119,12 @@ func main() {
 
 	r.Get("/api/stats", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		if stats.CachedStats == nil {
+		cached := stats.GetCachedStats()
+		if cached == nil {
 			http.Error(w, `{"error": "Stats not ready"}`, http.StatusServiceUnavailable)
 			return
 		}
-		json.NewEncoder(w).Encode(stats.CachedStats)
+		json.NewEncoder(w).Encode(cached)
 	})
 
 	r.Get("/api/room", api.HandleGetRoom)
