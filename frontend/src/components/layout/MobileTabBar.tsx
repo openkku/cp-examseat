@@ -21,7 +21,7 @@ export const MobileTabBar: React.FC = () => {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-slate-200/50 dark:border-slate-800/60 z-30 flex items-center justify-around px-4 pb-safe shadow-lg">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[4.5rem] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200/70 dark:border-slate-800/70 z-30 flex items-center justify-around px-3 pb-safe shadow-lg shadow-emerald-950/5 dark:shadow-none">
       {navItems.map((item) => {
         const active = isActive(item.path);
         return (
@@ -30,12 +30,12 @@ export const MobileTabBar: React.FC = () => {
             to={item.path}
             className={`flex flex-col items-center justify-center flex-1 py-1 px-2 select-none transition-all duration-200 ${
               active
-                ? 'text-blue-600 dark:text-blue-400 scale-105 font-bold'
+                ? 'text-faculty dark:text-blue-300 font-bold'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-350'
             }`}
           >
             <div className={`p-1.5 rounded-xl transition-all duration-300 ${
-              active ? 'bg-blue-50 dark:bg-blue-950/60 shadow-sm shadow-blue-100/10 dark:shadow-none' : ''
+              active ? 'bg-faculty-light dark:bg-blue-950/60 shadow-sm shadow-blue-950/5 dark:shadow-none' : ''
             }`}>
               {item.icon}
             </div>

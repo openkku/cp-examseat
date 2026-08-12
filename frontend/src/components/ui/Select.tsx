@@ -1,5 +1,5 @@
 // src/components/ui/Select.tsx
-import React from 'react';
+import React, { useId } from 'react';
 import { ChevronDown } from '../icons';
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -15,7 +15,8 @@ export const Select: React.FC<SelectProps> = ({
   id,
   ...props
 }) => {
-  const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const selectId = id || `select-${generatedId}`;
 
   return (
     <div className={`flex flex-col ${className}`}>
@@ -30,7 +31,7 @@ export const Select: React.FC<SelectProps> = ({
       <div className="relative">
         <select
           id={selectId}
-          className="w-full appearance-none border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 pr-10 text-xs font-bold bg-slate-50/50 dark:bg-slate-950/50 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-sans"
+          className="min-h-11 w-full appearance-none border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 pr-10 text-xs font-bold bg-white dark:bg-slate-900 hover:bg-teal-50/40 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-100 hover:border-teal-300 dark:hover:border-teal-500 cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500/25 dark:focus:ring-teal-500/40 focus:border-teal-500 dark:focus:border-teal-400 transition-all font-sans"
           {...props}
         >
           {options ? (

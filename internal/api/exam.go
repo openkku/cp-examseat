@@ -46,6 +46,9 @@ func HandleGetExam(d database.Database, w http.ResponseWriter, r *http.Request) 
 			Seat:        s.Seat,
 			Note:        s.Note,
 			Branch:      s.Branch,
+			Labels:      s.Labels,
+			RoomLayout:  s.RoomLayout,
+			CustomID:    s.CustomID,
 		})
 	}
 

@@ -2,8 +2,8 @@
 import React from 'react';
 
 interface BadgeProps {
-  variant?: 'blue' | 'emerald' | 'amber' | 'rose' | 'sky' | 'slate' | 'indigo';
-  size?: 'sm' | 'md';
+  variant?: 'blue' | 'emerald' | 'amber' | 'rose' | 'sky' | 'slate' | 'indigo' | 'purple' | 'navy';
+  size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
   className?: string;
 }
@@ -14,21 +14,24 @@ export const Badge: React.FC<BadgeProps> = ({
   size = 'md',
   className = '',
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-bold rounded-full border whitespace-nowrap leading-none';
+  const baseStyles = 'inline-flex items-center justify-center font-bold rounded-full border whitespace-nowrap leading-none transition-colors shadow-xs';
   
   const sizeStyles = {
-    sm: 'px-2 py-0.5 text-[10px]',
+    sm: 'px-2 py-0.5 text-[11px]',
     md: 'px-2.5 py-1 text-xs',
+    lg: 'px-3 py-1.5 text-xs sm:text-sm',
   };
 
   const variantStyles = {
-    blue: 'bg-blue-50 dark:bg-blue-950/60 border-blue-100 dark:border-blue-900/60 text-blue-700 dark:text-blue-400',
-    emerald: 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-100 dark:border-emerald-900/60 text-emerald-700 dark:text-emerald-400',
-    amber: 'bg-amber-50 dark:bg-amber-950/60 border-amber-100 dark:border-amber-900/60 text-amber-700 dark:text-amber-400',
-    rose: 'bg-rose-50 dark:bg-rose-950/60 border-rose-100 dark:border-rose-900/60 text-rose-700 dark:text-rose-400',
-    sky: 'bg-sky-50 dark:bg-sky-950/60 border-sky-100 dark:border-sky-900/60 text-sky-700 dark:text-sky-400',
-    indigo: 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-100 dark:border-indigo-900/60 text-indigo-700 dark:text-indigo-400',
-    slate: 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-655 dark:text-slate-300',
+    blue: 'bg-sky-50 dark:bg-sky-950/80 border-sky-200 dark:border-sky-800 text-sky-800 dark:text-sky-200',
+    emerald: 'bg-teal-50 dark:bg-teal-950/80 border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-200',
+    amber: 'bg-amber-50 dark:bg-amber-950/80 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300',
+    rose: 'bg-rose-50 dark:bg-rose-950/80 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300',
+    sky: 'bg-sky-50 dark:bg-sky-950/80 border-sky-200 dark:border-sky-800 text-sky-800 dark:text-sky-300',
+    indigo: 'bg-indigo-50 dark:bg-indigo-950/80 border-indigo-200 dark:border-indigo-800 text-indigo-800 dark:text-indigo-200',
+    purple: 'bg-purple-50 dark:bg-purple-950/80 border-purple-200 dark:border-purple-800 text-purple-800 dark:text-purple-200',
+    navy: 'bg-faculty-light dark:bg-blue-950/80 border-blue-200 dark:border-blue-800 text-faculty dark:text-blue-200',
+    slate: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-750 dark:text-slate-200',
   };
 
   return (

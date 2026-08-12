@@ -1,44 +1,40 @@
 # 🎨 CP Exam Seat — Design System & Frontend Specification
 
 > **วิทยาลัยการคอมพิวเตอร์ มหาวิทยาลัยขอนแก่น**
-> Central design reference for the `cpkku-view` frontend — covers visual identity, component API, responsive patterns, and per-page layout.
+> Central design reference for the `cpkku-view` frontend — covers the Soft Daylight interface, faculty-blue identity, interactive seat maps, and responsive layouts.
 
 ---
 
-## 1. Design Identity — "Minimal Blue-Navy"
+## 1. Design Identity — "Soft Daylight, Faculty Blue"
 
 ### Philosophy
 
-> **"สะอาด ทันสมัย โล่งสบายตา"** — Clean minimalism with balanced visual hierarchy.
-> Inspired by: Linear.app, Vercel Dashboard, and refined dark/light mode interfaces.
+> **"สะอาด อ่านง่าย สบายตา"** — A calm daylight interface with the College of Computing's official blue as the primary action color.
 
 ### Color Palette
 
 | Token | Light | Dark |
 |-------|-------|------|
-| Background | `#FAFBFE` Lavender Mist | `#0A0F24` Deep Navy |
-| Surface | `#FFFFFF` Pure White | `#141B35` Navy Abyss |
-| Surface Hover | `#F4F6FA` | `#1E2647` |
-| Border | `#E8ECF4` Frost | `#232E52` Graphite |
-| Text Primary | `#0F172A` Ink | `#F1F5F9` Snow |
-| Text Secondary | `#64748B` Pewter | `#A5B4D4` Silver |
-| Text Muted | `#94A3B8` Fog | `#6475B2` Ash |
+| Background | `#F8FBF8` Soft Daylight | `#09150F` Deep Forest |
+| Surface | `#FFFFFF` Pure White | `#102018` Deep Surface |
+| Border | `#E4EBE7` Soft Sage | `#1D2D25` Dark Sage |
+| Text Primary | `#1D2D25` Ink Green | `#EEF7F1` Soft White |
+| Text Secondary | `#5F7167` Sage | `#A7BBB0` Soft Sage |
+| Faculty Primary | `#0047AB` College Blue | `#8CB8FF` Blue Light |
 
-**Organic Accent Colors**
+**Notice & Alert Accent Colors**
 
 | Name | Light (Soft Pastel) | Dark (Muted Contrast) | Usage |
 |------|-------|-------|-------|
-| Subjects | `bg-blue-500/10` / `text-blue-600` | `bg-blue-500/20` / `text-blue-300` | Exams count |
-| Rooms | `bg-emerald-500/10` / `text-emerald-600` | `bg-emerald-500/20` / `text-emerald-300` | Rooms count |
-| Days | `bg-violet-500/10` / `text-violet-600` | `bg-violet-500/20` / `text-violet-300` | Days count |
-| Branch | `#F1F5F9` bg / `#475569` text | `bg-indigo-500/15` / `text-indigo-300` | Major / Branch badge |
+| Amber Notice | `bg-amber-500/10` / `border-amber-500/30` / `text-amber-800` | `bg-amber-500/15` / `border-amber-500/30` / `text-amber-300` | Exam Notes & Equipment Restrictions Banner |
+| Quarantine | `bg-amber-500/10` / `text-amber-600` | `bg-amber-500/20` / `text-amber-300` | Quarantine exam status |
+| Outside Schedule | `bg-sky-500/10` / `text-sky-600` | `bg-sky-500/20` / `text-sky-300` | Outside-schedule exam status |
 
-**Color Accents**
-```
-Indigo/Blue  → Emerald/Teal  → Violet/Rose
-```
+**Color rules**
 
-Used in: Logo badge, hero subtitle, seat-detail accent stripe, glassmorphic card glow meshes.
+- `#0047AB` (`faculty`) is the primary action, navigation, analytics, and label color.
+- Sky, teal, amber, and rose remain semantic supporting colors; they do not replace faculty blue for primary actions.
+- Course labels such as `Lab` and `Lecture` use the navy/faculty-blue badge treatment.
 
 ### Typography
 
@@ -58,6 +54,8 @@ Monospace:  System mono stack (student IDs, course codes, seat numbers)
 | Sub-Caption | 0.6875rem (11px) | 700 | Metadata sub-labels (Sec, Date, Time etc.) |
 | Micro | 0.625rem (10px) | 800 | Badges, seat cell labels |
 | Nano | 0.5rem (8px) | 800 | Tiny labels inside small cards |
+
+**Desktop scale:** at `≥1024px`, the root size is `18px` (instead of `16px`). This scales all rem-based typography, controls, cards, and spacing up by 12.5%; mobile retains the default compact scale.
 
 ### Spacing & Radius
 
@@ -154,7 +152,7 @@ frontend/src/
 
 #### `<Button>`
 ```tsx
-variant: "primary" | "secondary" | "ghost"   // primary = blue gradient
+variant: "primary" | "secondary" | "ghost" | "danger" // primary = #0047AB
 size:    "sm" | "md" | "lg"                  // lg = py-3.5
 icon?:   ReactNode                           // Left icon slot
 fullWidth?: boolean
@@ -169,7 +167,7 @@ className?:     string     // Tailwind overrides
 
 #### `<Badge>`
 ```tsx
-variant: "blue" | "indigo" | "rose" | "amber" | "sky" | "slate"
+variant: "blue" | "emerald" | "indigo" | "purple" | "rose" | "amber" | "sky" | "slate" | "navy"
 size:    "sm" | "md"
 ```
 
@@ -207,7 +205,7 @@ containerClassName?: string
 │  [🔍 ค้นหา] [🏫 ห้องสอบ] [🗺️ สำรวจ] [📊 สถิติ]  │
 └─────────────────────────────────────────────────┘
 
-Background: Two large aurora blur circles (indigo + cyan) at
+Background: Two subtle daylight blur circles (sky + teal) sit behind
             absolute position behind all content, pointer-events-none
 ```
 
@@ -215,8 +213,8 @@ Background: Two large aurora blur circles (indigo + cyan) at
 
 | Viewport | Pattern | Details |
 |----------|---------|---------|
-| Desktop (≥768px) | Top navbar links | Horizontal pill-shaped links with icons, active = blue bg |
-| Mobile (<768px) | Bottom tab bar | Fixed bottom, 4 tabs, icon + 10px label, active = blue tint bg |
+| Desktop (≥768px) | Top navbar links | Horizontal pill-shaped links with icons, active = faculty-blue tint |
+| Mobile (<768px) | Bottom tab bar | Fixed bottom, 4 tabs, icon + 10px label, active = faculty-blue tint |
 
 **Desktop Navbar** hides nav links on mobile; **MobileTabBar** hides on desktop via `md:hidden`.
 
@@ -269,7 +267,7 @@ Background: Two large aurora blur circles (indigo + cyan) at
 This new component (`<StudentProfileCard>`) appears only after a successful search with results.
 
 ```
-┌── Student Profile Card (full content width, minimal blue-navy style) ┐
+┌── Student Profile Card (full content width, soft daylight style) ┐
 │                                                                      │
 │  ┌──────┐                                                            │
 │  │  68  │  รหัสนักศึกษา (Student ID)          ┌──────────────────┐  │
@@ -287,28 +285,21 @@ This new component (`<StudentProfileCard>`) appears only after a successful sear
 | Field | Source | Display |
 |-------|--------|---------|
 | Student ID | `studentId` state | Monospace, bold, `text-lg` |
-| Branch | `branch` from API → `formatBranch()` | Slate/Indigo pill badge (no icon), `font-bold` |
-| Exam Count | `results.length` | Text: "{n} รายวิชา" (no icons) |
-| Room Count | `new Set(results.map(r => r.room)).size` | Text: "{n} ห้องสอบ" (no icons) |
-| Exam Days | `new Set(results.map(r => r.date)).size` | Text: "{n} วันสอบ" (no icons) |
+| Branch | `branch` from API → `formatBranch()` | Faculty-blue tinted badge, `font-bold` |
+| Exam Count | `results.length` | Sky stat tile: "{n} รายวิชา" |
+| Room Count | `new Set(results.map(r => r.room)).size` | Teal stat tile: "{n} ห้องสอบ" |
+| Exam Days | `new Set(results.map(r => r.date)).size` | Amber stat tile: "{n} วันสอบ" |
 
 **Styling Tokens:**
 ```
 Card:           pure white / navy surface (bg-white dark:bg-slate-900), max-w-3xl, w-full, p-6, rounded-2xl, border-slate-200 dark:border-slate-800
-Avatar Box:     w-12 h-12, bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500
-                text-white font-black, rounded-full, flex items-center justify-center
+Avatar Box:     w-12 h-12, bg-faculty (#0047AB)
+                text-white font-black, rounded-2xl, flex items-center justify-center
                 Content: first 2 chars of student ID (e.g. "68")
-Branch Badge:   bg-slate-100 dark:bg-indigo-500/15
-                text-slate-700 dark:text-indigo-300
-                border border-slate-200 dark:border-indigo-500/30
-                px-3.5 py-1 rounded-full font-bold text-xs
-Stat Chips:
-  - Subjects:   bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300
-                border border-blue-200/50 dark:border-blue-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold
-  - Rooms:      bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300
-                border border-emerald-200/50 dark:border-emerald-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold
-  - Days:       bg-violet-500/10 dark:bg-violet-500/20 text-violet-650 dark:text-violet-300
-                border border-violet-200/50 dark:border-violet-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold
+Branch Badge:   bg-faculty-light / dark:bg-blue-950
+                text-faculty / dark:text-blue-300; rounded-xl
+Stat Tiles:     three equal columns with sky, teal, and amber semantic surfaces;
+                number on first line and Thai label below
 ```
 
 **Animation:** Entrance: `fade-in + slide-up 400ms ease-out` when results load.
@@ -436,19 +427,25 @@ The search button and student ID input are **responsive**—stacking vertically 
   <div className="w-full md:flex-1 relative">
     <Input className="w-full font-mono text-center text-xl" ... />
   </div>
-  <button className="w-full md:w-auto shrink-0 py-3 px-6 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white flex items-center justify-center gap-2 h-[50px]">
+  <button className="w-full md:w-auto shrink-0 py-3 px-6 rounded-xl font-bold text-sm bg-faculty hover:bg-faculty-dark text-white flex items-center justify-center gap-2 min-h-12">
     <Search className="w-5 h-5 text-white" />
     <span>ค้นหา</span>
   </button>
 </div>
 ```
 
-#### Stats Summary Dashboard: Rainbow Cards
+#### Stats Summary Dashboard
 On the initial page state, statistical summary cards display with colorful left-border accent bars and matching color numbers:
 - **Headcount Card**: `border-l-blue-500` / `text-blue-600 dark:text-blue-400`
 - **Rooms Card**: `border-l-emerald-500` / `text-emerald-600 dark:text-emerald-400`
 - **Top Subjects Card**: `border-l-sky-500` / `bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-300`
 - **Cohort Breakdown Card**: `border-l-violet-500` / `text-violet-600 dark:text-violet-400`
+
+#### Exam Card Labels and Pending Assignments
+
+- `ExamResult.labels` is rendered directly below the course code as a compact `navy` badge for each non-empty label. `Lab` and `Lecture` therefore use the faculty-blue treatment.
+- Room and seat values are a responsive two-column grid. Long values wrap inside their own column rather than expanding the seat type or colliding with the adjacent value.
+- If either value contains `แจ้งก่อนวันสอบ`, the grid is replaced by one concise status: **`จะแจ้งก่อนวันสอบ`**. Map and explorer actions are hidden until a concrete assignment is available.
 
 #### Completed Exams Filter: "ซ่อนวิชาที่สอบผ่านไปแล้ว"
 A checklist toggle appears directly above search results to control passed exam visibility:
@@ -694,6 +691,8 @@ Users can customize what fields are rendered inside the map seat cells.
 ### 5.4 Stats (`/stats`)
 
 **Purpose**: High-fidelity dashboard displaying analytical highlights and room occupancy metrics.
+
+**Faculty-blue analytics treatment:** The dashboard uses `#0047AB` for its header icon, primary counter card, leading chart bars, progress bars, sortable totals, and interactive hover text. Supporting series use darker blue and sky shades, while amber remains reserved for time/status emphasis.
 
 #### Desktop (≥768px)
 

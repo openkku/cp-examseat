@@ -211,8 +211,12 @@ export const RoomExplorer: React.FC = () => {
       .catch(() => {
         setOptTimes([]);
         setTime("");
+        // Fallback: If no valid times exist for this date, reset date if needed or fallback to first date
+        if (optDates.length > 0 && optDates[0] !== date) {
+          setDate(optDates[0]);
+        }
       });
-  }, [date, round]);
+  }, [date, round, optDates]);
 
   // 4. Time -> Rooms Cascade
   useEffect(() => {
@@ -239,8 +243,16 @@ export const RoomExplorer: React.FC = () => {
       .catch(() => {
         setOptRooms([]);
         setRoom("");
+        // Fallback: If no valid rooms exist for this time/date (e.g. 404), fallback to next available time or first date
+        if (optTimes.length > 1) {
+          const nextTime = optTimes.find(t => t !== time);
+          if (nextTime) setTime(nextTime);
+        } else if (optDates.length > 1) {
+          const nextDate = optDates.find(d => d !== date);
+          if (nextDate) setDate(nextDate);
+        }
       });
-  }, [time, date, round]);
+  }, [time, date, round, optTimes, optDates]);
 
   // 5. Query roster results
   useEffect(() => {
@@ -457,7 +469,7 @@ export const RoomExplorer: React.FC = () => {
 
           {/* Title Block */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
-            <div className="p-2 bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-500 rounded-xl text-white shadow-md shadow-indigo-500/10 shrink-0 hidden sm:flex">
+            <div className="p-2 bg-teal-600 rounded-xl text-white shadow-sm shadow-teal-600/20 shrink-0 hidden sm:flex">
               <MapPin className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -974,11 +986,18 @@ export const RoomExplorer: React.FC = () => {
                     <ExternalLink className="w-4 h-4 opacity-40 hover:opacity-100 transition-opacity" />
                   </a>
                 </div>
-                {selectedSeat.branch && (
-                  <Badge variant="indigo" size="sm" className="font-extrabold uppercase font-sans tracking-wide">
-                    {formatBranch(selectedSeat.branch)}
-                  </Badge>
-                )}
+                <div className="flex items-center gap-1 flex-wrap justify-center">
+                  {selectedSeat.branch && (
+                    <Badge variant="indigo" size="sm" className="font-extrabold uppercase font-sans tracking-wide">
+                      {formatBranch(selectedSeat.branch)}
+                    </Badge>
+                  )}
+                  {selectedSeat.labels && selectedSeat.labels.map((lbl, idx) => (
+                    <Badge key={idx} variant="navy" size="sm" className="font-extrabold font-sans tracking-wide">
+                      {lbl}
+                    </Badge>
+                  ))}
+                </div>
               </div>
 
               {/* Subject Details */}

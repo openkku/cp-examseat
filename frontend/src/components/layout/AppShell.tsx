@@ -8,8 +8,8 @@ export const AppShell = () => {
     <div className="h-dvh flex flex-col overflow-hidden font-sans bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 relative transition-colors duration-300">
 
       {/* Aurora Glow background effects */}
-      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-400/10 dark:bg-indigo-900/5 blur-[130px] pointer-events-none z-0 transition-colors duration-300"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-cyan-400/10 dark:bg-cyan-900/5 blur-[130px] pointer-events-none z-0 transition-colors duration-300"></div>
+      <div className="absolute top-[-18%] left-[-14%] w-[54%] h-[54%] rounded-full bg-sky-300/14 dark:bg-sky-900/8 blur-[140px] pointer-events-none z-0 transition-colors duration-300"></div>
+      <div className="absolute bottom-[-18%] right-[-14%] w-[54%] h-[54%] rounded-full bg-teal-300/14 dark:bg-teal-900/8 blur-[140px] pointer-events-none z-0 transition-colors duration-300"></div>
 
       {/* Top Navbar */}
       <Navbar />

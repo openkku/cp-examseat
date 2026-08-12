@@ -4,6 +4,7 @@ import (
 	"context"
 	"cpkkuview/internal/base"
 	"cpkkuview/internal/database"
+	"cpkkuview/internal/seater"
 	"fmt"
 )
 
@@ -13,7 +14,10 @@ func (d *Database) GetSeatsByID(ctx context.Context, opts base.SeatsOptions) ([]
             e.sheet, e.date, e.time, e.room, e.subject, e.section, e.student_id, e.seat, e.note,
             COALESCE(s.name, '') as subject_name,
             e.exam_round,
-            COALESCE(e.branch, '') as branch
+            COALESCE(e.branch, '') as branch,
+            COALESCE(e.labels, '') as labels,
+            COALESCE(e.room_layout, '') as room_layout,
+            COALESCE(e.custom_id, '') as custom_id
         FROM exams e
         LEFT JOIN subjects s 
             ON e.subject = s.id 
@@ -44,6 +48,7 @@ func (d *Database) GetSeatsByID(ctx context.Context, opts base.SeatsOptions) ([]
 	var seats []database.Seats
 	for rows.Next() {
 		var s database.Seats
+		var rawLabels string
 		err := rows.Scan(
 			&s.Sheet,
 			&s.Date,
@@ -57,10 +62,14 @@ func (d *Database) GetSeatsByID(ctx context.Context, opts base.SeatsOptions) ([]
 			&s.SubjectName,
 			&s.ExamRound,
 			&s.Branch,
+			&rawLabels,
+			&s.RoomLayout,
+			&s.CustomID,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning seats: %w", err)
 		}
+		s.Labels = seater.ParseLabels(rawLabels)
 		seats = append(seats, s)
 	}
 
@@ -77,7 +86,10 @@ func (d *Database) GetSeats(ctx context.Context, opts base.ExploreOptions) ([]da
                 e.sheet, e.date, e.time, e.room, e.subject, e.section, e.student_id, e.seat, e.note,
                 COALESCE(s.name, '') as subject_name,
                 e.exam_round,
-                COALESCE(e.branch, '') as branch
+                COALESCE(e.branch, '') as branch,
+                COALESCE(e.labels, '') as labels,
+                COALESCE(e.room_layout, '') as room_layout,
+                COALESCE(e.custom_id, '') as custom_id
             FROM exams e
             LEFT JOIN subjects s 
                 ON e.subject = s.id 
@@ -102,6 +114,7 @@ func (d *Database) GetSeats(ctx context.Context, opts base.ExploreOptions) ([]da
 	var seats []database.Seats
 	for rows.Next() {
 		var s database.Seats
+		var rawLabels string
 		err := rows.Scan(
 			&s.Sheet,
 			&s.Date,
@@ -115,10 +128,14 @@ func (d *Database) GetSeats(ctx context.Context, opts base.ExploreOptions) ([]da
 			&s.SubjectName,
 			&s.ExamRound,
 			&s.Branch,
+			&rawLabels,
+			&s.RoomLayout,
+			&s.CustomID,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning seats: %w", err)
 		}
+		s.Labels = seater.ParseLabels(rawLabels)
 		seats = append(seats, s)
 	}
 

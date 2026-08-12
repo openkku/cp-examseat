@@ -26,7 +26,7 @@ export const SearchHistory: React.FC<SearchHistoryProps> = ({
   if (history.length === 0) return null;
 
   return (
-    <Card className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/60 rounded-xl shadow-xl dark:shadow-none overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+    <Card className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-xl shadow-xl shadow-emerald-950/10 dark:shadow-none overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
       {/* Header */}
       <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800/60 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/40">
         <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">
@@ -45,7 +45,7 @@ export const SearchHistory: React.FC<SearchHistoryProps> = ({
           <div
             key={`${item.studentId}-${item.roundId}-${idx}`}
             onClick={() => onSelect(item)}
-            className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800/40 cursor-pointer group flex items-center justify-between transition-colors last:border-0"
+            className="px-4 py-3 hover:bg-teal-50/80 dark:hover:bg-slate-800/90 border-b border-slate-100 dark:border-slate-800/70 cursor-pointer group flex items-center justify-between transition-colors last:border-0"
           >
             <div className="flex items-center gap-2.5 md:gap-3 min-w-0 flex-1">
               {/* Clock/history icon */}

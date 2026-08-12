@@ -17,7 +17,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`bg-white/80 dark:bg-slate-900/80 border border-slate-200/50 dark:border-slate-800/60 backdrop-blur-md rounded-2xl p-10 text-center shadow-sm dark:shadow-none max-w-md mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300 ${className}`}>
+    <div className={`bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xl rounded-2xl p-8 sm:p-10 text-center shadow-sm shadow-emerald-950/[0.03] dark:shadow-none max-w-md mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300 ${className}`}>
       <div className="text-4xl mb-4 leading-none select-none flex justify-center">{icon}</div>
       <h3 className="font-extrabold text-slate-800 dark:text-slate-100 text-lg mb-1 leading-snug">
         {title}

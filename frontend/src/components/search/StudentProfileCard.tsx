@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card } from '../ui/Card';
-import { Badge } from '../ui/Badge';
 import { formatBranch } from '../../utils';
 import { CalendarActions } from '../calendar/CalendarActions';
 
@@ -25,12 +24,12 @@ export const StudentProfileCard: React.FC<StudentProfileCardProps> = ({
 
   return (
     <Card
-      className="p-6 w-full max-w-3xl mb-8 md:mb-12 border-slate-200 dark:border-slate-800 shadow-md dark:shadow-none hover:shadow-lg dark:hover:shadow-none transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-400 !overflow-visible"
+      className="p-5 sm:p-6 w-full max-w-3xl mb-8 md:mb-10 border-slate-200/80 dark:border-slate-800 shadow-sm shadow-emerald-950/[0.035] dark:shadow-none animate-in fade-in slide-in-from-bottom-4 duration-400 !overflow-visible"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 pb-5">
         {/* Left Side: Avatar and ID */}
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 flex items-center justify-center text-white font-black text-lg shadow-md shadow-indigo-500/10 shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-teal-600 flex items-center justify-center text-white font-black text-lg shadow-sm shadow-teal-600/25 shrink-0">
             {avatarText}
           </div>
           <div>
@@ -47,7 +46,7 @@ export const StudentProfileCard: React.FC<StudentProfileCardProps> = ({
         {formattedBranchName && (
           <div className="sm:text-right shrink-0">
             <span
-              className="font-bold px-3.5 py-1 text-xs tracking-wide bg-slate-100 dark:bg-indigo-500/15 text-slate-700 dark:text-indigo-300 border border-slate-200 dark:border-indigo-500/30 rounded-full inline-flex items-center shadow-none"
+              className="font-bold px-3 py-1.5 text-xs tracking-wide bg-teal-50 dark:bg-teal-950/35 text-teal-800 dark:text-teal-300 border border-teal-100 dark:border-teal-900/50 rounded-xl inline-flex items-center shadow-none"
             >
               {formattedBranchName}
             </span>
@@ -55,16 +54,15 @@ export const StudentProfileCard: React.FC<StudentProfileCardProps> = ({
         )}
       </div>
 
-      {/* Stats row (No emojis, soft pastel color boxes matching original blue theme) */}
-      <div className="mt-2 flex flex-wrap gap-3">
-        <div className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-200/50 dark:border-blue-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center">
-          <span>{examsCount} รายวิชา</span>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="rounded-xl bg-sky-50/80 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 px-3 py-2.5">
+          <span className="block text-lg leading-none font-black text-sky-700 dark:text-sky-300">{examsCount}</span><span className="block mt-1 text-[10px] font-bold text-sky-700/70 dark:text-sky-300/70">รายวิชา</span>
         </div>
-        <div className="bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center">
-          <span>{roomsCount} ห้องสอบ</span>
+        <div className="rounded-xl bg-teal-50/80 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/50 px-3 py-2.5">
+          <span className="block text-lg leading-none font-black text-teal-700 dark:text-teal-300">{roomsCount}</span><span className="block mt-1 text-[10px] font-bold text-teal-700/70 dark:text-teal-300/70">ห้องสอบ</span>
         </div>
-        <div className="bg-violet-500/10 dark:bg-violet-500/20 text-violet-600 dark:text-violet-300 border border-violet-200/50 dark:border-violet-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center">
-          <span>{daysCount} วันสอบ</span>
+        <div className="rounded-xl bg-orange-50/80 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900/50 px-3 py-2.5">
+          <span className="block text-lg leading-none font-black text-orange-700 dark:text-orange-300">{daysCount}</span><span className="block mt-1 text-[10px] font-bold text-orange-700/70 dark:text-orange-300/70">วันสอบ</span>
         </div>
       </div>
 

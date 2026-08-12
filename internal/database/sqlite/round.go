@@ -31,6 +31,27 @@ func (d *Database) PurgeRound(ctx context.Context, roundID string) error {
 	return nil
 }
 
+func (d *Database) PurgeCustomDataset(ctx context.Context, roundID string, customID string) error {
+	if customID == "" {
+		return d.PurgeRound(ctx, roundID)
+	}
+
+	tx, err := d.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx, "DELETE FROM exams WHERE exam_round = ? AND custom_id = ?", roundID, customID); err != nil {
+		return fmt.Errorf("failed to clear custom dataset exams: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
+}
+
 func (d *Database) AddRound(ctx context.Context, roundID string, displayName string, seats []database.Seats) error {
 	tx, err := d.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -45,8 +66,8 @@ func (d *Database) AddRound(ctx context.Context, roundID string, displayName str
 
 	// Prepare statement for exams
 	stmtExam, err := tx.PrepareContext(ctx, `
-		INSERT OR REPLACE INTO exams (exam_round, student_id, branch, sheet, date, time, room, subject, section, seat, note)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT OR REPLACE INTO exams (exam_round, student_id, branch, sheet, date, time, room, subject, section, seat, note, labels, room_layout, custom_id)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`)
 	if err != nil {
 		return fmt.Errorf("failed to prepare insert exam statement: %w", err)
@@ -65,7 +86,8 @@ func (d *Database) AddRound(ctx context.Context, roundID string, displayName str
 	savedSubjects := make(map[string]bool)
 
 	for _, s := range seats {
-		_, err := stmtExam.ExecContext(ctx, roundID, s.StudentID, s.Branch, s.Sheet, s.Date, s.Time, s.Room, s.Subject, s.Section, s.Seat, s.Note)
+		rawLabels := seater.JoinLabels(s.Labels)
+		_, err := stmtExam.ExecContext(ctx, roundID, s.StudentID, s.Branch, s.Sheet, s.Date, s.Time, s.Room, s.Subject, s.Section, s.Seat, s.Note, rawLabels, s.RoomLayout, s.CustomID)
 		if err != nil {
 			return fmt.Errorf("failed to insert exam (student: %s, subject: %s): %w", s.StudentID, s.Subject, err)
 		}
@@ -119,7 +141,10 @@ func (d *Database) GetAllSeats(ctx context.Context) ([]database.Seats, error) {
 			e.sheet, e.date, e.time, e.room, e.subject, e.section, e.student_id, e.seat, e.note,
 			COALESCE(s.name, '') as subject_name,
 			e.exam_round,
-			COALESCE(e.branch, '') as branch
+			COALESCE(e.branch, '') as branch,
+			COALESCE(e.labels, '') as labels,
+			COALESCE(e.room_layout, '') as room_layout,
+			COALESCE(e.custom_id, '') as custom_id
 		FROM exams e
 		LEFT JOIN subjects s ON e.subject = s.id AND e.exam_round = s.exam_round
 	`
@@ -132,6 +157,7 @@ func (d *Database) GetAllSeats(ctx context.Context) ([]database.Seats, error) {
 	var seats []database.Seats
 	for rows.Next() {
 		var s database.Seats
+		var rawLabels string
 		err := rows.Scan(
 			&s.Sheet,
 			&s.Date,
@@ -145,10 +171,14 @@ func (d *Database) GetAllSeats(ctx context.Context) ([]database.Seats, error) {
 			&s.SubjectName,
 			&s.ExamRound,
 			&s.Branch,
+			&rawLabels,
+			&s.RoomLayout,
+			&s.CustomID,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan seat: %w", err)
 		}
+		s.Labels = seater.ParseLabels(rawLabels)
 		seats = append(seats, s)
 	}
 	return seats, nil

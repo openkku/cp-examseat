@@ -20,7 +20,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-bold transition-all duration-200 cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100';
+  const baseStyles = 'min-h-11 inline-flex items-center justify-center font-bold transition-all duration-200 cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100 focus-visible:outline-none';
   
   const sizeStyles = {
     sm: 'py-1.5 px-3 text-xs rounded-lg gap-1.5',
@@ -29,9 +29,9 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const variantStyles = {
-    primary: 'bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white shadow-md shadow-blue-100/30 dark:shadow-none hover:shadow-lg hover:shadow-blue-200/40 dark:hover:shadow-none',
-    secondary: 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm dark:shadow-none',
-    ghost: 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200',
+    primary: 'bg-faculty hover:bg-faculty-dark text-white shadow-sm shadow-faculty/20 dark:shadow-none',
+    secondary: 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-faculty-light/60 dark:hover:bg-blue-950/30 hover:border-blue-200 dark:hover:border-blue-900/70 shadow-sm dark:shadow-none',
+    ghost: 'text-slate-600 dark:text-slate-400 hover:bg-faculty-light/70 dark:hover:bg-blue-950/30 hover:text-faculty dark:hover:text-blue-200',
     danger: 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm hover:shadow-md hover:shadow-rose-500/20',
   };
 

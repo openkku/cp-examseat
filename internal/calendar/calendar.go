@@ -19,21 +19,20 @@ func Generate(seats []base.Seats) ([]byte, error) {
 	var calOpts []ikalendar.CalendarOption
 
 	for _, s := range seats {
-		// Parse times (format e.g., "09.00 - 12.00")
-		parts := strings.Split(s.Time, "-")
-		if len(parts) != 2 {
-			log.Printf("Invalid time range format: %s for subject %s", s.Time, s.Subject)
-			continue
-		}
-
 		cleanTime := func(tStr string) string {
 			tStr = strings.TrimSpace(tStr)
 			tStr = strings.ReplaceAll(tStr, ":", ".")
 			return tStr
 		}
 
-		startStr := cleanTime(parts[0])
-		endStr := cleanTime(parts[1])
+		var startStr, endStr string
+		parts := strings.Split(s.Time, "-")
+		if len(parts) == 2 {
+			startStr = cleanTime(parts[0])
+			endStr = cleanTime(parts[1])
+		} else {
+			startStr = cleanTime(s.Time)
+		}
 
 		startTime, err := time.ParseInLocation("2006-01-02 15.04", s.Date+" "+startStr, bangkokLoc)
 		if err != nil {
@@ -41,29 +40,40 @@ func Generate(seats []base.Seats) ([]byte, error) {
 			continue
 		}
 
-		endTime, err := time.ParseInLocation("2006-01-02 15.04", s.Date+" "+endStr, bangkokLoc)
-		if err != nil {
-			log.Printf("Error parsing end time: %v", err)
-			continue
-		}
-
 		// Create Event UID
-		uid := fmt.Sprintf("exam-%s-%s-%s@cpkku-view", s.ExamRound, s.StudentID, s.Subject)
+		uid := fmt.Sprintf("exam-%s-%s-%s-%s-%s@cpkku-view", s.ExamRound, s.StudentID, s.Subject, strings.Join(s.Labels, "_"), s.CustomID)
 
 		summary := fmt.Sprintf("[%s] %s", s.Subject, s.SubjectName)
+		if len(s.Labels) > 0 {
+			summary += fmt.Sprintf(" (%s)", strings.Join(s.Labels, ", "))
+		}
+
 		description := fmt.Sprintf("วิชา: %s - %s\nกลุ่มเรียน (SEC): %s\nห้องสอบ: %s\nที่นั่งสอบ: %s", s.Subject, s.SubjectName, s.Section, s.Room, s.Seat)
+		if len(s.Labels) > 0 {
+			description += fmt.Sprintf("\nประเภท/ข้อความกำกับ: %s", strings.Join(s.Labels, ", "))
+		}
 		if s.Note != "" {
 			description += fmt.Sprintf("\nหมายเหตุ: %s", s.Note)
 		}
 
-		event, err := ikalendar.NewEvent(uid,
+		eventOpts := []ikalendar.EventOption{
 			ikalendar.WithSummary(summary),
 			ikalendar.WithDescription(description),
 			ikalendar.WithLocation(s.Room),
 			ikalendar.WithDtStart(startTime),
-			ikalendar.WithDtEnd(endTime),
 			ikalendar.WithDtStamp(now),
-		)
+		}
+
+		if endStr != "" {
+			endTime, err := time.ParseInLocation("2006-01-02 15.04", s.Date+" "+endStr, bangkokLoc)
+			if err != nil {
+				log.Printf("Error parsing end time: %v", err)
+			} else {
+				eventOpts = append(eventOpts, ikalendar.WithDtEnd(endTime))
+			}
+		}
+
+		event, err := ikalendar.NewEvent(uid, eventOpts...)
 		if err != nil {
 			log.Printf("Error building event: %v", err)
 			continue

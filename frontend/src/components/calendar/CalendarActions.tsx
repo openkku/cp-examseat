@@ -85,7 +85,7 @@ export const CalendarActions: React.FC<CalendarActionsProps> = ({ studentId }) =
           <div className="mb-3">
             <button
               onClick={handleSubscribeCalendar}
-              className="w-full flex items-center justify-center font-bold bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white border-none shadow-sm text-xs py-2.5 rounded-xl transition-all duration-200 cursor-pointer gap-2 active:scale-[0.98]"
+              className="w-full min-h-11 flex items-center justify-center font-bold bg-teal-600 hover:bg-teal-700 text-white border-none shadow-sm shadow-teal-600/20 text-xs py-2.5 rounded-xl transition-all duration-200 cursor-pointer gap-2 active:scale-[0.98]"
             >
               <Smartphone className="w-4 h-4 text-white" />
               <span>เพิ่มลงปฏิทินอัตโนมัติ</span>

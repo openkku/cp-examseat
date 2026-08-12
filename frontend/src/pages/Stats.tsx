@@ -101,9 +101,9 @@ export const StatsPage: React.FC = () => {
     const colorsMap: Record<string, string> = {};
     years.forEach((y, idx) => {
       if (idx < 3) {
-        colorsMap[y] = idx === 0 ? 'bg-blue-600 shadow-blue-200 dark:shadow-none' :
-          idx === 1 ? 'bg-indigo-500 shadow-indigo-200 dark:shadow-none' :
-            'bg-cyan-400 shadow-cyan-200 dark:shadow-none';
+        colorsMap[y] = idx === 0 ? 'bg-faculty shadow-blue-200 dark:shadow-none' :
+          idx === 1 ? 'bg-blue-700 shadow-blue-200 dark:shadow-none' :
+            'bg-sky-500 shadow-sky-200 dark:shadow-none';
       } else {
         colorsMap[y] = 'bg-slate-350 dark:bg-slate-700';
       }
@@ -258,7 +258,7 @@ export const StatsPage: React.FC = () => {
         <Card className="border border-rose-100 dark:border-rose-950/40 p-8 rounded-2xl text-center max-w-sm w-full">
           <span className="text-4xl mb-3 block select-none">⚠️</span>
           <h3 className="font-extrabold text-slate-800 dark:text-slate-100 text-lg mb-1 leading-snug">เกิดข้อผิดพลาดในการโหลดสถิติ</h3>
-          <Link to="/" className="text-blue-600 dark:text-blue-400 font-bold hover:underline block mt-4 text-xs uppercase tracking-wider">กลับหน้าหลัก</Link>
+          <Link to="/" className="text-faculty dark:text-blue-300 font-bold hover:underline block mt-4 text-xs uppercase tracking-wider">กลับหน้าหลัก</Link>
         </Card>
       </div>
     );
@@ -267,13 +267,13 @@ export const StatsPage: React.FC = () => {
   const isGlobal = selectedView === 'global';
 
   return (
-    <div className="h-full w-full bg-[#FAFBFE] dark:bg-[#0A0F24] font-sans pb-24 overflow-y-auto transition-colors relative">
+    <div className="h-full w-full bg-slate-50/30 dark:bg-slate-950/20 font-sans pb-24 overflow-y-auto transition-colors relative">
 
       {/* 2. FILTER STICKY TOP ROW (Glassmorphic) */}
       <div className="bg-white/70 dark:bg-slate-900/70 border-b border-slate-200/50 dark:border-slate-850 sticky top-0 z-20 backdrop-blur-xl px-4 sm:px-6 py-2.5 sm:py-4 transition-all duration-300 select-none">
         <div className="max-w-7xl mx-auto flex flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="p-2 bg-gradient-to-tr from-indigo-500 via-blue-500 to-cyan-500 rounded-xl text-white shadow-md shadow-indigo-500/10 shrink-0 hidden sm:flex">
+            <div className="p-2 bg-faculty rounded-xl text-white shadow-sm shadow-faculty/20 shrink-0 hidden sm:flex">
               <BarChart3 className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -303,7 +303,7 @@ export const StatsPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
           {/* Card 1: Students */}
           <Card glass hover className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-500/10 dark:shadow-none">
+            <div className="w-12 h-12 rounded-xl bg-faculty flex items-center justify-center text-white shrink-0 shadow-sm shadow-faculty/20 dark:shadow-none">
               <User className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -316,7 +316,7 @@ export const StatsPage: React.FC = () => {
 
           {/* Card 2: Rooms */}
           <Card glass hover className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-indigo-500/10 dark:shadow-none">
+            <div className="w-12 h-12 rounded-xl bg-blue-800 flex items-center justify-center text-white shrink-0 shadow-sm shadow-blue-900/15 dark:shadow-none">
               <School className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -329,7 +329,7 @@ export const StatsPage: React.FC = () => {
 
           {/* Card 3: Subjects */}
           <Card glass hover className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-cyan-500/10 dark:shadow-none">
+            <div className="w-12 h-12 rounded-xl bg-sky-600 flex items-center justify-center text-white shrink-0 shadow-sm shadow-sky-600/15 dark:shadow-none">
               <BarChart3 className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -342,7 +342,7 @@ export const StatsPage: React.FC = () => {
 
           {/* Card 4: Total Seatings */}
           <Card glass hover className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-amber-500/10 dark:shadow-none">
+            <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center text-white shrink-0 shadow-sm shadow-amber-500/15 dark:shadow-none">
               <Calendar className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -448,9 +448,9 @@ export const StatsPage: React.FC = () => {
                 <div className="w-full h-3 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800">
                   {currentStats.department_breakdown.map((dept, idx) => {
                     const percent = (dept.seatings / (currentStats.total_seatings || 1)) * 100;
-                    const bgClass = idx === 0 ? 'bg-gradient-to-r from-indigo-500 to-indigo-600' :
-                      idx === 1 ? 'bg-gradient-to-r from-cyan-400 to-cyan-500' :
-                        idx === 2 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-slate-400';
+                    const bgClass = idx === 0 ? 'bg-faculty' :
+                      idx === 1 ? 'bg-blue-700' :
+                        idx === 2 ? 'bg-sky-500' : 'bg-slate-400';
                     return (
                       <div
                         key={dept.department}
@@ -513,7 +513,7 @@ export const StatsPage: React.FC = () => {
                           title={`เช้า: ${amCount.toLocaleString()} ที่นั่ง (${amPercent.toFixed(1)}%)`}
                         />
                         <div
-                          className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-all duration-500 hover:brightness-110"
+                          className="h-full bg-faculty transition-all duration-500 hover:brightness-110"
                           style={{ width: `${pmPercent}%` }}
                           title={`บ่าย: ${pmCount.toLocaleString()} ที่นั่ง (${pmPercent.toFixed(1)}%)`}
                         />
@@ -572,7 +572,7 @@ export const StatsPage: React.FC = () => {
                     <div className="flex-1 flex items-center gap-3">
                       <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden relative">
                         <div
-                          className="h-full bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-400 rounded-full transition-all duration-500 hover:brightness-105"
+                          className="h-full bg-faculty rounded-full transition-all duration-500 hover:brightness-105"
                           style={{ width: `${percent}%` }}
                         />
                       </div>
@@ -652,7 +652,7 @@ export const StatsPage: React.FC = () => {
                           <th key={year} className="px-4 py-3.5 font-black text-center">ปี {year}</th>
                         ))}
                         <th
-                          className="px-6 py-3.5 text-right font-black cursor-pointer hover:bg-slate-100/60 dark:hover:bg-slate-900/60 transition-colors text-blue-600 dark:text-blue-400"
+                          className="px-6 py-3.5 text-right font-black cursor-pointer hover:bg-faculty-light/60 dark:hover:bg-blue-950/20 transition-colors text-faculty dark:text-blue-300"
                           onClick={() => handleSort('total')}
                         >
                           รวมทั้งหมด {sortKey === 'total' && (sortDirection === 'asc' ? ' ▲' : ' ▼')}
@@ -677,7 +677,7 @@ export const StatsPage: React.FC = () => {
                                 </td>
                               );
                             })}
-                            <td className="px-6 py-4 text-right font-black text-blue-600 dark:text-blue-400 font-mono">{round.total.toLocaleString()} คน</td>
+                            <td className="px-6 py-4 text-right font-black text-faculty dark:text-blue-300 font-mono">{round.total.toLocaleString()} คน</td>
                           </tr>
                         );
                       })}
@@ -722,11 +722,11 @@ export const StatsPage: React.FC = () => {
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500 inline-block leading-none">{sub.code}</span>
                               <div className="h-1 bg-slate-100 dark:bg-slate-850 rounded-full overflow-hidden w-24">
-                                <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" style={{ width: `${barWidth}%` }} />
+                                <div className="h-full bg-faculty rounded-full" style={{ width: `${barWidth}%` }} />
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-4 text-right font-black text-blue-600 dark:text-blue-400 font-mono">{sub.count.toLocaleString()} คน</td>
+                          <td className="px-4 py-4 text-right font-black text-faculty dark:text-blue-300 font-mono">{sub.count.toLocaleString()} คน</td>
                         </tr>
                       );
                     })}
@@ -833,7 +833,7 @@ const StackedBarChart = ({ data, selectedId, onSelect, yearColors }: { data: Das
             </div>
 
             {/* Shortened Label */}
-            <div className="mt-3.5 text-nano text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate w-full text-center group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-none">
+            <div className="mt-3.5 text-nano text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wider truncate w-full text-center group-hover:text-faculty dark:group-hover:text-blue-300 transition-colors leading-none">
               {round.label.replace(/Exam|Examination|Round/gi, '').trim()}
             </div>
           </button>

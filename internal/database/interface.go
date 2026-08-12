@@ -18,6 +18,7 @@ type Database interface {
 
 	AddRound(ctx context.Context, roundID string, displayName string, seats []Seats) error
 	PurgeRound(ctx context.Context, roundID string) error
+	PurgeCustomDataset(ctx context.Context, roundID string, customID string) error
 	GetRounds(ctx context.Context) ([]RoundOption, error)
 	GetAllSeats(ctx context.Context) ([]Seats, error)
 }

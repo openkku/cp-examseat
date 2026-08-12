@@ -74,6 +74,9 @@ func HandleGetExplore(d database.Database, w http.ResponseWriter, r *http.Reques
 					Seat:        s.Seat,
 					Note:        s.Note,
 					Branch:      s.Branch,
+					Labels:      s.Labels,
+					RoomLayout:  s.RoomLayout,
+					CustomID:    s.CustomID,
 				})
 			}
 
@@ -131,6 +134,11 @@ func HandleGetOptions(d database.Database, w http.ResponseWriter, r *http.Reques
 	})
 	if err != nil {
 		WriteError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(options) == 0 {
+		WriteNoData(w, "No options found")
 		return
 	}
 

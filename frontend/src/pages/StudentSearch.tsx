@@ -10,8 +10,6 @@ import { hasExamPassed } from '../utils';
 
 // UI Primitives
 import { Card } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Badge } from '../components/ui/Badge';
 
@@ -23,6 +21,28 @@ import {
 interface RoundOption {
   id: string;
   label: string;
+}
+
+interface TopSubject {
+  code: string;
+  name: string;
+  count: number;
+}
+
+interface YearCohort {
+  year: string;
+  count: number;
+}
+
+interface RoundStats {
+  student_count: number;
+  room_count: number;
+  top_subjects?: TopSubject[];
+  year_distribution?: YearCohort[];
+}
+
+interface StatsResponse {
+  stats: Record<string, RoundStats>;
 }
 
 export const StudentSearch = () => {
@@ -77,7 +97,7 @@ export const StudentSearch = () => {
   }, [results, hidePassed]);
 
   // Stats dashboard state
-  const [statsData, setStatsData] = useState<any>(null);
+  const [statsData, setStatsData] = useState<StatsResponse | null>(null);
 
   // Search history state
   const [history, setHistory] = useState<SearchHistoryItem[]>(() => {
@@ -165,8 +185,8 @@ export const StudentSearch = () => {
           .then(data => setConfigMap(data))
           .catch(() => console.warn("Could not load config"));
       }
-    } catch (err: any) {
-      setError(err.message || "Error fetching data");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error fetching data");
     } finally {
       setLoading(false);
     }
@@ -267,21 +287,25 @@ export const StudentSearch = () => {
   return (
     <div
       ref={scrollContainerRef}
-      className="h-full w-full overflow-y-auto bg-slate-50/30 dark:bg-slate-950/20 flex flex-col items-center pt-8 md:pt-14 px-6 pb-20 relative z-10 transition-colors"
+      className="h-full w-full overflow-y-auto bg-slate-50/30 dark:bg-slate-950/20 flex flex-col items-center pt-8 md:pt-12 px-4 sm:px-6 pb-24 relative z-10 transition-colors"
     >
       <div className="max-w-3xl w-full flex flex-col items-center">
         {/* HERO TITLE */}
-        <div className="text-center mb-8 md:mb-12 max-w-2xl">
+        <div className="text-center mb-7 md:mb-9 max-w-2xl">
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-800 dark:text-slate-100 leading-none mb-3">
             ค้นหาที่นั่งสอบ
           </h1>
-          <p className="text-base md:text-lg font-bold text-slate-500 dark:text-slate-400">
+          <p className="text-sm md:text-base font-bold text-slate-500 dark:text-slate-400">
             วิทยาลัยการคอมพิวเตอร์ มหาวิทยาลัยขอนแก่น
           </p>
         </div>
 
         {/* SEARCH CONTAINER (Minimal Blue Theme) */}
-        <Card className="p-6 md:p-8 w-full max-w-lg mb-8 md:mb-12 border-slate-200 dark:border-slate-800 shadow-md dark:shadow-none hover:shadow-lg dark:hover:shadow-none !overflow-visible">
+        <Card className="p-5 sm:p-6 md:p-7 w-full max-w-xl mb-8 md:mb-10 border-slate-200/80 dark:border-slate-800 shadow-lg shadow-emerald-950/[0.04] dark:shadow-none !overflow-visible">
+          <div className="mb-5">
+            <h2 className="text-base font-black text-slate-800 dark:text-slate-100">ค้นหาตารางสอบของคุณ</h2>
+            <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">เลือกรอบสอบ แล้วกรอกรหัสนักศึกษาเพื่อดูที่นั่งของคุณ</p>
+          </div>
           {/* Round Selector */}
           <div className="mb-5">
             <Select
@@ -318,7 +342,8 @@ export const StudentSearch = () => {
                   onClick={() => setShowHistory(true)}
                   onKeyDown={(e) => e.key === 'Enter' && handleManualSearch()}
                   maxLength={11}
-                  className="shadow-none appearance-none border rounded-xl w-full py-3 px-4 text-slate-800 dark:text-slate-100 leading-tight focus:outline-none focus:ring-2 focus:ring-slate-350 dark:focus:ring-slate-700 focus:border-transparent font-mono text-center text-xl tracking-widest bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+                  aria-label="รหัสนักศึกษา"
+                  className="min-h-12 shadow-sm appearance-none border rounded-xl w-full py-3 px-4 text-slate-800 dark:text-slate-100 leading-tight focus:outline-none focus:ring-2 focus:ring-teal-500/25 dark:focus:ring-teal-500/40 focus:border-teal-500 dark:focus:border-teal-400 font-mono text-center text-lg tracking-widest bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-teal-300 dark:hover:border-teal-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
 
                 {showHistory && (
@@ -334,7 +359,7 @@ export const StudentSearch = () => {
               <button
                 onClick={handleManualSearch}
                 disabled={loading || !selectedRound}
-                className="w-full md:w-auto shrink-0 py-3 px-6 rounded-xl font-bold text-sm whitespace-nowrap h-[50px] flex items-center justify-center bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white border-none shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all duration-200 cursor-pointer gap-2"
+                className="w-full md:w-auto shrink-0 py-3 px-6 rounded-xl font-bold text-sm whitespace-nowrap min-h-12 flex items-center justify-center bg-teal-600 hover:bg-teal-700 text-white border-none shadow-sm shadow-teal-600/20 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all duration-200 cursor-pointer gap-2"
               >
                 {loading ? '...' : (
                   <>
@@ -346,7 +371,7 @@ export const StudentSearch = () => {
             </div>
           </div>
 
-          {error && <div className="mt-4 text-rose-500 text-center text-sm font-semibold">{error}</div>}
+          {error && <div role="alert" className="mt-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/50 px-3 py-2.5 text-rose-600 dark:text-rose-300 text-center text-xs font-semibold">{error}</div>}
         </Card>
 
         {/* STUDENT PROFILE CARD */}
@@ -363,7 +388,7 @@ export const StudentSearch = () => {
         {/* RESULTS AREA */}
         <div className="w-full space-y-6">
           {results !== null && results.length > 0 && (
-            <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 animate-in fade-in duration-300">
+            <div className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-1 animate-in fade-in duration-300">
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                 ตารางสอบของคุณ ({processedResults?.length || 0} รายการ)
               </span>
@@ -379,6 +404,8 @@ export const StudentSearch = () => {
             </div>
           )}
 
+          {loading && <div className="space-y-4" aria-label="กำลังค้นหาที่นั่งสอบ"><div className="h-52 rounded-2xl shimmer" /><div className="h-52 rounded-2xl shimmer" /></div>}
+
           {processedResults?.map((exam, idx) => (
             <ExamCard
               key={`${exam.subject}-${idx}`}
@@ -393,7 +420,7 @@ export const StudentSearch = () => {
 
           {/* NO RESULTS DISPLAY */}
           {results !== null && results.length === 0 && !loading && !error && (
-            <div className="bg-white/80 dark:bg-slate-900/80 border border-rose-100 dark:border-rose-950/40 rounded-2xl p-10 text-center shadow-sm dark:shadow-none max-w-md mx-auto">
+            <div className="bg-white/90 dark:bg-slate-900/90 border border-rose-100 dark:border-rose-950/40 rounded-2xl p-8 sm:p-10 text-center shadow-sm dark:shadow-none max-w-md mx-auto">
               <div className="text-rose-500 text-4xl mb-3">🔍</div>
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg mb-1">ไม่พบข้อมูลที่นั่งสอบ</h3>
               <p className="text-slate-400 dark:text-slate-400 text-xs">โปรดตรวจสอบรหัสนักศึกษา หรือรอบการสอบใหม่อีกครั้ง</p>
@@ -402,7 +429,7 @@ export const StudentSearch = () => {
 
           {/* INITIAL STATE: SHOW STATS SUMMARY */}
           {results === null && !loading && currentRoundStats && (
-            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 animate-in fade-in slide-in-from-bottom-4 duration-300">
 
               {/* Summary Cards */}
               <div className="md:col-span-1 space-y-4">
@@ -427,10 +454,10 @@ export const StudentSearch = () => {
                   รายวิชาที่มีที่นั่งสูงสุด
                 </h3>
                 {topSubjects.length === 0 ? (
-                  <div className="text-slate-300 dark:text-slate-700 text-xs italic py-4 text-center">ไม่มีข้อมูลรายวิชา</div>
+                  <div className="text-slate-400 dark:text-slate-600 text-xs italic py-4 text-center">ไม่มีข้อมูลรายวิชา</div>
                 ) : (
                   <div className="space-y-3.5">
-                    {topSubjects.map((sub: any) => (
+                    {topSubjects.map((sub: TopSubject) => (
                       <div key={sub.code} className="flex justify-between items-start text-xs gap-2.5">
                         <div className="flex-1 min-w-0">
                           <span className="font-bold text-slate-700 dark:text-slate-200 truncate block leading-tight">{sub.name}</span>
@@ -451,12 +478,12 @@ export const StudentSearch = () => {
                   สัดส่วนตามชั้นปี (รหัส นศ.)
                 </h3>
                 {cohorts.length === 0 ? (
-                  <div className="text-slate-300 dark:text-slate-700 text-xs italic py-4 text-center">ไม่มีข้อมูลชั้นปี</div>
+                  <div className="text-slate-400 dark:text-slate-600 text-xs italic py-4 text-center">ไม่มีข้อมูลชั้นปี</div>
                 ) : (
                   <div className="space-y-2.5">
-                    {cohorts.map((item: any) => (
+                    {cohorts.map((item: YearCohort) => (
                       <div key={item.year} className="flex justify-between items-center text-xs">
-                        <span className="font-bold text-slate-550 dark:text-slate-400">รหัสชั้นปี {item.year}</span>
+                        <span className="font-bold text-slate-600 dark:text-slate-400">รหัสชั้นปี {item.year}</span>
                         <span className="font-black text-violet-600 dark:text-violet-400 font-mono">{item.count.toLocaleString()} คน</span>
                       </div>
                     ))}

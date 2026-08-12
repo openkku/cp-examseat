@@ -43,6 +43,35 @@ func TestGenerate(t *testing.T) {
 	}
 }
 
+func TestGenerate_NoEndTime(t *testing.T) {
+	seats := []base.Seats{
+		{
+			StudentID:   "663380132-6",
+			Date:        "2026-08-30",
+			Time:        "13.00",
+			Subject:     "CP422022",
+			SubjectName: "Database Architecture Analysis and Design",
+			Section:     "1",
+			Room:        "แจ้งก่อนวันสอบ",
+			Seat:        "แจ้งก่อนวันสอบ",
+			ExamRound:   "mid_1_2569",
+		},
+	}
+
+	icsBytes, err := Generate(seats)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	icsStr := string(icsBytes)
+	if !strings.Contains(icsStr, "DTSTART") {
+		t.Errorf("expected calendar to contain DTSTART, got:\n%s", icsStr)
+	}
+	if strings.Contains(icsStr, "DTEND") {
+		t.Errorf("expected calendar NOT to contain DTEND for open-ended event, got:\n%s", icsStr)
+	}
+}
+
 func TestGenerate_Empty(t *testing.T) {
 	icsBytes, err := Generate(nil)
 	if err != nil {

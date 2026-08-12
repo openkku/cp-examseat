@@ -13,6 +13,9 @@ type Seats struct {
 	Note        string
 	ExamRound   string
 	Branch      string
+	Labels      []string
+	RoomLayout  string
+	CustomID    string
 }
 
 type SeatsOptions struct {

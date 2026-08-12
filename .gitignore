@@ -37,3 +37,5 @@ playground/
 public/
 oldpublic/
 original_exam_table/
+
+.npm-cache/

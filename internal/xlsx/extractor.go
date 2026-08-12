@@ -16,18 +16,51 @@ import (
 
 // ExtractAndMigrate processes the raw Excel file and populates SQLite tables
 func ExtractAndMigrate(db database.Database, filePath string, roundID string, displayName string) error {
-	fmt.Printf("📦 Migrating Round [%s] (%s) directly from Excel: %s\n", roundID, displayName, filePath)
+	return ExtractAndMigrateCustom(db, filePath, roundID, displayName, nil, "", "")
+}
 
-	// 2. Open the Excel file
+// ExtractAndMigrateCustom processes Excel file with labels, room layout, and custom ID options
+func ExtractAndMigrateCustom(db database.Database, filePath string, roundID string, displayName string, labels []string, roomLayout string, customID string) error {
+	fmt.Printf("📦 Migrating Round [%s] (%s) from Excel: %s\n", roundID, displayName, filePath)
+
+	seats, err := ExtractSeats(filePath, roundID, labels, roomLayout, customID)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	if customID != "" {
+		fmt.Printf("   > Clearing existing data for round '%s' with custom_id '%s'...\n", roundID, customID)
+		if err := db.PurgeCustomDataset(ctx, roundID, customID); err != nil {
+			return fmt.Errorf("failed to purge custom dataset: %w", err)
+		}
+	} else {
+		fmt.Printf("   > Clearing existing data for round '%s'...\n", roundID)
+		if err := db.PurgeRound(ctx, roundID); err != nil {
+			return fmt.Errorf("failed to purge old round: %w", err)
+		}
+	}
+
+	fmt.Printf("   > Saving new data for round '%s' (%d seats)...\n", roundID, len(seats))
+	if err := db.AddRound(ctx, roundID, displayName, seats); err != nil {
+		return fmt.Errorf("failed to add round data: %w", err)
+	}
+
+	fmt.Printf("\n✅ Success! Imported %d exams for round '%s' directly from Excel.\n", len(seats), displayName)
+	return nil
+}
+
+// ExtractSeats parses an Excel file and returns extracted seats
+func ExtractSeats(filePath string, roundID string, labels []string, roomLayout string, customID string) ([]database.Seats, error) {
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to open excel file: %w", err)
+		return nil, fmt.Errorf("failed to open excel file: %w", err)
 	}
 	defer f.Close()
 
 	var seats []database.Seats
 
-	// 5. Parse worksheets
 	sheets := f.GetSheetList()
 	for _, sheetName := range sheets {
 		rows, err := f.GetRows(sheetName)
@@ -38,7 +71,6 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 
 		rowPtr := 0
 		for rowPtr < len(rows) {
-			// Find next "ใบรายชื่อ"
 			startRow := -1
 			for r := rowPtr; r < len(rows); r++ {
 				visible, err := f.GetRowVisible(sheetName, r+1)
@@ -59,14 +91,12 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 			}
 
 			if startRow == -1 {
-				break // No more roster sections in this sheet
+				break
 			}
 
-			// Find header row and metadata
 			headerRow := -1
 			var room, subject, subjectName, section, timeVal string
 
-			// Scan forward up to 10 rows from startRow for metadata block
 			limit := startRow + 10
 			if limit > len(rows) {
 				limit = len(rows)
@@ -92,7 +122,6 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 					subjectRaw = strings.ReplaceAll(subjectRaw, ": ", "")
 					subjectRaw = strings.TrimSpace(subjectRaw)
 
-					// Parse subject code & name
 					nbspIdx := strings.Index(subjectRaw, "\u00a0")
 					spaceIdx := strings.Index(subjectRaw, " ")
 
@@ -107,7 +136,6 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 						subjectName = ""
 					}
 
-					// Section is typically in column F (index 5)
 					var sectionRaw string
 					if len(rowCells) > 5 {
 						sectionRaw = rowCells[5]
@@ -137,7 +165,6 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 
 			dataRow := headerRow + 1
 
-			// Read students roster
 			for dataRow < len(rows) {
 				visible, err := f.GetRowVisible(sheetName, dataRow+1)
 				if err == nil && !visible {
@@ -162,7 +189,7 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 				}
 
 				if studentID == "" && seat == "" {
-					break // End of roster section
+					break
 				}
 
 				cleanID := seater.NormalizeID(studentID)
@@ -181,6 +208,9 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 						Note:        note,
 						ExamRound:   roundID,
 						Branch:      branch,
+						Labels:      labels,
+						RoomLayout:  roomLayout,
+						CustomID:    customID,
 					})
 				}
 
@@ -191,22 +221,7 @@ func ExtractAndMigrate(db database.Database, filePath string, roundID string, di
 		}
 	}
 
-	ctx := context.Background()
-
-	// Clear OLD data for this round
-	fmt.Printf("   > Clearing existing data for round '%s'...\n", roundID)
-	if err := db.PurgeRound(ctx, roundID); err != nil {
-		return fmt.Errorf("failed to purge old round: %w", err)
-	}
-
-	// Insert NEW data for this round
-	fmt.Printf("   > Saving new data for round '%s' (%d seats)...\n", roundID, len(seats))
-	if err := db.AddRound(ctx, roundID, displayName, seats); err != nil {
-		return fmt.Errorf("failed to add round data: %w", err)
-	}
-
-	fmt.Printf("\n✅ Success! Imported %d exams for round '%s' directly from Excel.\n", len(seats), displayName)
-	return nil
+	return seats, nil
 }
 
 // parseThaiDate translates sheet labels like "2 มี.ค. 68" to standard date format "2025-03-02"

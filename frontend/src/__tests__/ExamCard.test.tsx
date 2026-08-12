@@ -69,6 +69,51 @@ describe('ExamCard', () => {
     expect(screen.getByText('ไม่มีผังแบบจำลอง')).toBeInTheDocument();
   });
 
+  it('displays supplied exam labels with the navy label treatment', () => {
+    render(
+      <ExamCard
+        data={{ ...mockExam, labels: ['Lab', 'Lecture'] }}
+        configMap={mockConfigMap}
+      />
+    );
+
+    const lab = screen.getByText('Lab');
+    expect(lab).toBeInTheDocument();
+    expect(screen.getByText('Lecture')).toBeInTheDocument();
+    expect(lab.className).toContain('text-faculty');
+  });
+
+  it('uses a compact pending message until room and seat assignments are available', () => {
+    render(
+      <ExamCard
+        data={{ ...mockExam, room: 'แจ้งก่อนวันสอบ', seat: 'แจ้งก่อนวันสอบ' }}
+        configMap={mockConfigMap}
+        onViewMap={vi.fn()}
+        onJumpToExplorer={vi.fn()}
+      />
+    );
+
+    expect(screen.getAllByText('แจ้งก่อนวันสอบ')[0]).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /ค้นหาแผนที่ห้องสอบ/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /ดูแผนผังห้องสอบ/i })).not.toBeInTheDocument();
+  });
+
+  it('hides explore and view map buttons when layout is invalid (e.g. "แจ้งวันก่อนสอบ" and multi-room)', () => {
+    render(
+      <ExamCard
+        data={{ ...mockExam, room: 'ห้อง 9525, 9127', seat: 'แจ้งวันก่อนสอบ' }}
+        configMap={mockConfigMap}
+        onViewMap={vi.fn()}
+        onJumpToExplorer={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('ห้อง 9525, 9127')).toBeInTheDocument();
+    expect(screen.getByText('แจ้งวันก่อนสอบ')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /ค้นหาแผนที่ห้องสอบ/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /ดูแผนผังห้องสอบ/i })).not.toBeInTheDocument();
+  });
+
   it('triggers onViewMap and onJumpToExplorer callbacks when clicked', () => {
     const onViewMapMock = vi.fn();
     const onJumpToExplorerMock = vi.fn();

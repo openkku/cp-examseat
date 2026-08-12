@@ -13,6 +13,9 @@ export interface ExamResult {
   seat: string;
   note: string;
   branch?: string;
+  labels?: string[];
+  room_layout?: string;
+  custom_id?: string;
 }
 
 

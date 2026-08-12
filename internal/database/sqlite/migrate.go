@@ -20,8 +20,7 @@ func (d *Database) migrate() {
         subject TEXT,
         section TEXT,
         seat TEXT,
-        note TEXT,
-        UNIQUE(exam_round, student_id, subject)
+        note TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_student_round ON exams(student_id, exam_round);
     CREATE INDEX IF NOT EXISTS idx_room_time ON exams(room, time);
@@ -44,8 +43,8 @@ func (d *Database) migrate() {
 		log.Fatalf("❌ Error creating schema: %v", err)
 	}
 
-	// 1. Check if exams has branch column. If not, add it.
-	var examsHasBranch bool
+	// 1. Check if exams has branch, labels, room_layout, custom_id columns. If not, add them.
+	var examsHasBranch, examsHasLabels, examsHasRoomLayout, examsHasCustomID bool
 	rows, err := d.db.Query("PRAGMA table_info(exams);")
 	if err == nil {
 		defer rows.Close()
@@ -58,6 +57,15 @@ func (d *Database) migrate() {
 				if name == "branch" {
 					examsHasBranch = true
 				}
+				if name == "labels" {
+					examsHasLabels = true
+				}
+				if name == "room_layout" {
+					examsHasRoomLayout = true
+				}
+				if name == "custom_id" {
+					examsHasCustomID = true
+				}
 			}
 		}
 	}
@@ -67,6 +75,27 @@ func (d *Database) migrate() {
 			log.Printf("⚠️ Warning: Could not add branch column to exams: %v", err)
 		}
 	}
+	if !examsHasLabels {
+		log.Println("🔧 Adding labels column to exams table...")
+		if _, err := d.db.Exec("ALTER TABLE exams ADD COLUMN labels TEXT DEFAULT '';"); err != nil {
+			log.Printf("⚠️ Warning: Could not add labels column to exams: %v", err)
+		}
+	}
+	if !examsHasRoomLayout {
+		log.Println("🔧 Adding room_layout column to exams table...")
+		if _, err := d.db.Exec("ALTER TABLE exams ADD COLUMN room_layout TEXT DEFAULT '';"); err != nil {
+			log.Printf("⚠️ Warning: Could not add room_layout column to exams: %v", err)
+		}
+	}
+	if !examsHasCustomID {
+		log.Println("🔧 Adding custom_id column to exams table...")
+		if _, err := d.db.Exec("ALTER TABLE exams ADD COLUMN custom_id TEXT DEFAULT '';"); err != nil {
+			log.Printf("⚠️ Warning: Could not add custom_id column to exams: %v", err)
+		}
+	}
+
+	d.db.Exec("CREATE INDEX IF NOT EXISTS idx_exams_labels ON exams(exam_round, labels);")
+	d.db.Exec("CREATE INDEX IF NOT EXISTS idx_exams_custom_id ON exams(exam_round, custom_id);")
 
 	// 2. If students table exists, update exams.branch with students.branch, then drop students table
 	var studentsExists bool
