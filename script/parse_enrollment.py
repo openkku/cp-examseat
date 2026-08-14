@@ -4,7 +4,7 @@ import json
 import argparse
 from bs4 import BeautifulSoup
 
-def parse_enrollment(dir_path, subject_code, subject_name, exam_round, exams_config):
+def parse_enrollment(dir_path, subject_code, subject_name, exam_round, exams_config, default_room='แจ้งก่อนวันสอบ', default_seat='แจ้งก่อนวันสอบ'):
     """
     Parses HTML-formatted .xls enrollment files from dir_path
     and generates a list of seating records.
@@ -36,21 +36,25 @@ def parse_enrollment(dir_path, subject_code, subject_name, exam_round, exams_con
                 clean_id = std_id.replace('-', '').strip()
                 if len(clean_id) == 10 and clean_id.isdigit():
                     for cfg in exams_config:
+                        if 'section' in cfg and str(cfg['section']) != str(sec_num):
+                            continue
+                        room_val = cfg.get('room') if cfg.get('room') else default_room
+                        seat_val = cfg.get('seat') if cfg.get('seat') else default_seat
                         seats.append({
-                            'Sheet': cfg['sheet'],
-                            'Date': cfg['date'],
-                            'Time': cfg['time'],
-                            'Room': cfg['room'],
+                            'Sheet': cfg.get('sheet', ''),
+                            'Date': cfg.get('date', ''),
+                            'Time': cfg.get('time', ''),
+                            'Room': room_val,
                             'Subject': subject_code,
                             'SubjectName': subject_name,
                             'Section': sec_num,
                             'StudentID': clean_id,
-                            'Seat': cfg['seat'],
-                            'Note': cfg['note'],
+                            'Seat': seat_val,
+                            'Note': cfg.get('note', ''),
                             'ExamRound': exam_round,
                             'Branch': branch,
-                            'Labels': cfg['labels'],
-                            'CustomID': cfg['custom_id']
+                            'Labels': cfg.get('labels', []),
+                            'CustomID': cfg.get('custom_id', '')
                         })
     return seats
 
@@ -62,6 +66,8 @@ if __name__ == '__main__':
     parser.add_argument('--subject-name', required=True, help='Subject name e.g. Introduction to Computer Networking')
     parser.add_argument('--round', default='mid_1_2569', help='Exam round ID e.g. mid_1_2569')
     parser.add_argument('--mapping', default='data/enrollment_mapping.json', help='Path to mapping JSON file')
+    parser.add_argument('--default-room', default='แจ้งก่อนวันสอบ', help='Default room text when unspecified (e.g. ไม่ได้ระบุ)')
+    parser.add_argument('--default-seat', default='แจ้งก่อนวันสอบ', help='Default seat text when unspecified (e.g. ไม่ได้ระบุ)')
     args = parser.parse_args()
 
     configs = []
@@ -72,7 +78,7 @@ if __name__ == '__main__':
     else:
         print(f'Warning: Mapping file {args.mapping} not found.')
 
-    res = parse_enrollment(args.dir, args.subject, args.subject_name, args.round, configs)
+    res = parse_enrollment(args.dir, args.subject, args.subject_name, args.round, configs, args.default_room, args.default_seat)
     print(f'Parsed {len(res)} seating entries for {args.subject}.')
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, 'w', encoding='utf-8') as f:
