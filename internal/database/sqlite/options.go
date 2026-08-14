@@ -12,7 +12,7 @@ func (d *Database) GetOptions(ctx context.Context, opts base.ModeOptions) ([]str
 
 	switch opts.Mode {
 	case "dates":
-		query := "SELECT DISTINCT date, room FROM exams WHERE exam_round = ? ORDER BY date"
+		query := "SELECT DISTINCT date, room FROM exam_sessions WHERE exam_round = ? ORDER BY date"
 		rows, err := d.db.QueryContext(ctx, query, opts.Round)
 		if err != nil {
 			return nil, err
@@ -39,7 +39,7 @@ func (d *Database) GetOptions(ctx context.Context, opts base.ModeOptions) ([]str
 		return result, nil
 
 	case "times":
-		query := "SELECT DISTINCT time, room FROM exams WHERE exam_round = ? AND date = ? ORDER BY time"
+		query := "SELECT DISTINCT time_start, time_end, room FROM exam_sessions WHERE exam_round = ? AND date = ? ORDER BY time_start"
 		rows, err := d.db.QueryContext(ctx, query, opts.Round, opts.Date)
 		if err != nil {
 			return nil, err
@@ -49,8 +49,8 @@ func (d *Database) GetOptions(ctx context.Context, opts base.ModeOptions) ([]str
 		timeSet := make(map[string]bool)
 		var result []string
 		for rows.Next() {
-			var timeVal, roomVal string
-			if err := rows.Scan(&timeVal, &roomVal); err != nil {
+			var timeStartVal, timeEndVal, roomVal string
+			if err := rows.Scan(&timeStartVal, &timeEndVal, &roomVal); err != nil {
 				return nil, err
 			}
 			if hasRoomFilter {
@@ -58,16 +58,20 @@ func (d *Database) GetOptions(ctx context.Context, opts base.ModeOptions) ([]str
 					continue
 				}
 			}
-			if !timeSet[timeVal] {
-				timeSet[timeVal] = true
-				result = append(result, timeVal)
+			timeStr := timeStartVal
+			if timeEndVal != "" {
+				timeStr = timeStartVal + "-" + timeEndVal
+			}
+			if !timeSet[timeStr] {
+				timeSet[timeStr] = true
+				result = append(result, timeStr)
 			}
 		}
 		return result, nil
 
 	case "rooms":
-		query := "SELECT DISTINCT room FROM exams WHERE exam_round = ? AND date = ? AND time = ? ORDER BY room"
-		rows, err := d.db.QueryContext(ctx, query, opts.Round, opts.Date, opts.Time)
+		query := "SELECT DISTINCT room FROM exam_sessions WHERE exam_round = ? AND (date = ? OR ? = '') AND (time_start = ? OR (time_start || '-' || COALESCE(time_end, '')) = ? OR ? = '') ORDER BY room"
+		rows, err := d.db.QueryContext(ctx, query, opts.Round, opts.Date, opts.Date, opts.Time, opts.Time, opts.Time)
 		if err != nil {
 			return nil, err
 		}

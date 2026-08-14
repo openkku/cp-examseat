@@ -125,12 +125,14 @@ func runEquivalenceTest(t *testing.T, xlsxPrefix string, sourceDir string) {
 
 	rows, err := queryDB.Query(`
 		SELECT 
-			e.sheet, e.date, e.student_id, e.time, e.room, e.subject, 
+			es.sheet, es.date, st_seat.student_id, (es.time_start || '-' || COALESCE(es.time_end, '')), es.room, es.subject_id, 
 			COALESCE(s.name, '') as subject_name, 
-			e.section, e.seat, e.note 
-		FROM exams e
-		LEFT JOIN subjects s ON e.subject = s.id AND e.exam_round = s.exam_round
-		WHERE e.exam_round = ?`, roundID)
+			es.section, st_seat.seat, es.note 
+		FROM exam_seats st_seat
+		JOIN exam_sessions es ON st_seat.session_id = es.id
+		JOIN students st ON st_seat.student_id = st.id
+		LEFT JOIN subjects s ON es.subject_id = s.id AND es.exam_round = s.exam_round
+		WHERE es.exam_round = ?`, roundID)
 	if err != nil {
 		t.Fatalf("Failed to query exams: %v", err)
 	}
@@ -273,14 +275,16 @@ func TestExtractAndMigrateSuccess(t *testing.T) {
 
 	rows, err := queryDB.Query(`
 		SELECT 
-			e.sheet, e.date, e.student_id, e.time, e.room, e.subject, 
+			es.sheet, es.date, st_seat.student_id, (es.time_start || '-' || COALESCE(es.time_end, '')), es.room, es.subject_id, 
 			COALESCE(s.name, '') as subject_name, 
-			e.section, e.seat, e.note,
-			COALESCE(e.branch, '') as branch
-		FROM exams e
-		LEFT JOIN subjects s ON e.subject = s.id AND e.exam_round = s.exam_round
-		WHERE e.exam_round = ?
-		ORDER BY e.sheet ASC, e.date ASC, e.student_id ASC`, roundID)
+			es.section, st_seat.seat, es.note,
+			COALESCE(st.branch, '') as branch
+		FROM exam_seats st_seat
+		JOIN exam_sessions es ON st_seat.session_id = es.id
+		JOIN students st ON st_seat.student_id = st.id
+		LEFT JOIN subjects s ON es.subject_id = s.id AND es.exam_round = s.exam_round
+		WHERE es.exam_round = ?
+		ORDER BY es.sheet ASC, es.date ASC, st_seat.student_id ASC`, roundID)
 	if err != nil {
 		t.Fatalf("Failed to query exams: %v", err)
 	}
@@ -401,7 +405,7 @@ func TestExtractAndMigrateSkipHiddenRows(t *testing.T) {
 	}
 	defer queryDB.Close()
 
-	rows, err := queryDB.Query(`SELECT student_id, seat, subject FROM exams WHERE exam_round = 'hidden_test_round'`)
+	rows, err := queryDB.Query(`SELECT st_seat.student_id, st_seat.seat, es.subject_id FROM exam_seats st_seat JOIN exam_sessions es ON st_seat.session_id = es.id WHERE es.exam_round = 'hidden_test_round'`)
 	if err != nil {
 		t.Fatalf("Query failed: %v", err)
 	}

@@ -93,3 +93,67 @@ func TestGenerate_Empty(t *testing.T) {
 		t.Errorf("expected calendar to contain %q, but got:\n%s", expectedRefresh, icsStr)
 	}
 }
+
+func TestGenerate_TimeStartAndEnd(t *testing.T) {
+	seats := []base.Seats{
+		{
+			StudentID:   "663380100-0",
+			Date:        "2026-09-15",
+			TimeStart:   "08.30",
+			TimeEnd:     "11.30",
+			Subject:     "CP422021",
+			SubjectName: "Web Architectures",
+			Section:     "2",
+			Room:        "CP9421",
+			Seat:        "B12",
+			ExamRound:   "mid_1_2569",
+			Labels:      []string{"นัดสอบนอกตาราง", "Lecture"},
+			Note:        "นำเครื่องคิดเลขเข้าห้องสอบได้",
+		},
+	}
+
+	icsBytes, err := Generate(seats)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	unfolded := strings.ReplaceAll(strings.ReplaceAll(string(icsBytes), "\r\n ", ""), "\n ", "")
+	if !strings.Contains(unfolded, "DTSTART") || !strings.Contains(unfolded, "DTEND") {
+		t.Errorf("expected calendar to contain both DTSTART and DTEND, got:\n%s", unfolded)
+	}
+	if !strings.Contains(unfolded, "นัดสอบนอกตาราง") {
+		t.Errorf("expected calendar description to contain label 'นัดสอบนอกตาราง', got:\n%s", unfolded)
+	}
+	if !strings.Contains(unfolded, "นำเครื่องคิดเลขเข้าห้องสอบได้") {
+		t.Errorf("expected calendar description to contain note, got:\n%s", unfolded)
+	}
+}
+
+func TestGenerate_OutOfScheduleEmptyTime(t *testing.T) {
+	seats := []base.Seats{
+		{
+			StudentID:   "683380010-2",
+			Date:        "2025-10-27",
+			Time:        "",
+			TimeStart:   "",
+			TimeEnd:     "",
+			Subject:     "CP421011",
+			SubjectName: "Inspiration in Cybersecurity Career",
+			Section:     "01",
+			Room:        "จัดสอบนอกตาราง",
+			Seat:        "จัดสอบนอกตาราง",
+			ExamRound:   "final_1_2568",
+			Labels:      []string{"นัดสอบนอกตาราง"},
+		},
+	}
+
+	icsBytes, err := Generate(seats)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	unfolded := strings.ReplaceAll(strings.ReplaceAll(string(icsBytes), "\r\n ", ""), "\n ", "")
+	if strings.Contains(unfolded, "CP421011") {
+		t.Errorf("expected event for CP421011 without exam time to be skipped from calendar feed, got:\n%s", unfolded)
+	}
+}

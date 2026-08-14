@@ -7,119 +7,92 @@ import (
 func (d *Database) migrate() {
 	d.db.Exec("PRAGMA foreign_keys = ON;")
 
-	schema := `
-    CREATE TABLE IF NOT EXISTS exams (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        exam_round TEXT,
-        student_id TEXT,
-        branch TEXT,
-        sheet TEXT,
-        date TEXT, 
-        time TEXT,
-        room TEXT,
-        subject TEXT,
-        section TEXT,
-        seat TEXT,
-        note TEXT
-    );
-    CREATE INDEX IF NOT EXISTS idx_student_round ON exams(student_id, exam_round);
-    CREATE INDEX IF NOT EXISTS idx_room_time ON exams(room, time);
-    CREATE INDEX IF NOT EXISTS idx_exams_query ON exams(exam_round, date, time, room);
-    
-    CREATE TABLE IF NOT EXISTS subjects (
-        id TEXT,
-        exam_round TEXT,
-        name TEXT,
-        PRIMARY KEY (id, exam_round) 
-    );
-    CREATE INDEX IF NOT EXISTS idx_subjects_round ON subjects(exam_round);
+	// Drop legacy flat exams table if it exists
+	d.db.Exec("DROP TABLE IF EXISTS exams;")
 
-    CREATE TABLE IF NOT EXISTS round_info (
-        id TEXT PRIMARY KEY,
-        label TEXT
-    );
-    `
-	if _, err := d.db.Exec(schema); err != nil {
-		log.Fatalf("❌ Error creating schema: %v", err)
-	}
-
-	// 1. Check if exams has branch, labels, room_layout, custom_id columns. If not, add them.
-	var examsHasBranch, examsHasLabels, examsHasRoomLayout, examsHasCustomID bool
-	rows, err := d.db.Query("PRAGMA table_info(exams);")
+	// Check if exam_sessions has 'date' column. If not (old date_start schema), drop tables to recreate cleanly.
+	var hasDateCol bool
+	rows, err := d.db.Query("PRAGMA table_info(exam_sessions);")
 	if err == nil {
-		defer rows.Close()
 		for rows.Next() {
 			var cid int
 			var name, ctype string
 			var notnull, pk int
 			var dfltVal any
 			if err := rows.Scan(&cid, &name, &ctype, &notnull, &dfltVal, &pk); err == nil {
-				if name == "branch" {
-					examsHasBranch = true
-				}
-				if name == "labels" {
-					examsHasLabels = true
-				}
-				if name == "room_layout" {
-					examsHasRoomLayout = true
-				}
-				if name == "custom_id" {
-					examsHasCustomID = true
+				if name == "date" {
+					hasDateCol = true
 				}
 			}
 		}
-	}
-	if !examsHasBranch {
-		log.Println("🔧 Adding branch column to exams table...")
-		if _, err := d.db.Exec("ALTER TABLE exams ADD COLUMN branch TEXT;"); err != nil {
-			log.Printf("⚠️ Warning: Could not add branch column to exams: %v", err)
-		}
-	}
-	if !examsHasLabels {
-		log.Println("🔧 Adding labels column to exams table...")
-		if _, err := d.db.Exec("ALTER TABLE exams ADD COLUMN labels TEXT DEFAULT '';"); err != nil {
-			log.Printf("⚠️ Warning: Could not add labels column to exams: %v", err)
-		}
-	}
-	if !examsHasRoomLayout {
-		log.Println("🔧 Adding room_layout column to exams table...")
-		if _, err := d.db.Exec("ALTER TABLE exams ADD COLUMN room_layout TEXT DEFAULT '';"); err != nil {
-			log.Printf("⚠️ Warning: Could not add room_layout column to exams: %v", err)
-		}
-	}
-	if !examsHasCustomID {
-		log.Println("🔧 Adding custom_id column to exams table...")
-		if _, err := d.db.Exec("ALTER TABLE exams ADD COLUMN custom_id TEXT DEFAULT '';"); err != nil {
-			log.Printf("⚠️ Warning: Could not add custom_id column to exams: %v", err)
+		rows.Close()
+		if !hasDateCol {
+			d.db.Exec("DROP TABLE IF EXISTS exam_seats;")
+			d.db.Exec("DROP TABLE IF EXISTS session_labels;")
+			d.db.Exec("DROP TABLE IF EXISTS exam_sessions;")
 		}
 	}
 
-	d.db.Exec("CREATE INDEX IF NOT EXISTS idx_exams_labels ON exams(exam_round, labels);")
-	d.db.Exec("CREATE INDEX IF NOT EXISTS idx_exams_custom_id ON exams(exam_round, custom_id);")
+	schema := `
+    CREATE TABLE IF NOT EXISTS round_info (
+        id TEXT PRIMARY KEY,
+        label TEXT
+    );
 
-	// 2. If students table exists, update exams.branch with students.branch, then drop students table
-	var studentsExists bool
-	rowsCheck, err := d.db.Query("SELECT name FROM sqlite_master WHERE type='table' AND name='students';")
-	if err == nil {
-		defer rowsCheck.Close()
-		if rowsCheck.Next() {
-			studentsExists = true
-		}
-	}
-	if studentsExists {
-		log.Println("📦 Migrating branch data from students table back to exams table...")
-		_, err = d.db.Exec(`
-			UPDATE exams 
-			SET branch = (SELECT branch FROM students WHERE students.id = exams.student_id)
-			WHERE branch IS NULL OR branch = '';
-		`)
-		if err != nil {
-			log.Printf("⚠️ Warning: Could not copy branch data from students to exams: %v", err)
-		}
-		log.Println("🧹 Dropping students table...")
-		if _, err := d.db.Exec("DROP TABLE IF EXISTS students;"); err != nil {
-			log.Printf("⚠️ Warning: Could not drop students table: %v", err)
-		}
+    CREATE TABLE IF NOT EXISTS subjects (
+        id TEXT,
+        exam_round TEXT,
+        name TEXT,
+        PRIMARY KEY (id, exam_round)
+    );
+    CREATE INDEX IF NOT EXISTS idx_subjects_round ON subjects(exam_round);
+
+    CREATE TABLE IF NOT EXISTS students (
+        id TEXT PRIMARY KEY,
+        branch TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS exam_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        exam_round TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'IN_SCHEDULE',
+        custom_id TEXT DEFAULT '',
+        sheet TEXT NOT NULL,
+        date TEXT NOT NULL,
+        time_start TEXT NOT NULL,
+        time_end TEXT,
+        room TEXT NOT NULL,
+        subject_id TEXT NOT NULL,
+        section TEXT NOT NULL,
+        note TEXT DEFAULT '',
+        room_layout TEXT DEFAULT ''
+    );
+    CREATE INDEX IF NOT EXISTS idx_sessions_lookup ON exam_sessions(exam_round, room, date, time_start);
+    CREATE INDEX IF NOT EXISTS idx_sessions_category ON exam_sessions(exam_round, category);
+    CREATE INDEX IF NOT EXISTS idx_sessions_custom ON exam_sessions(exam_round, custom_id);
+
+    CREATE TABLE IF NOT EXISTS session_labels (
+        session_id INTEGER NOT NULL,
+        label TEXT NOT NULL,
+        PRIMARY KEY (session_id, label),
+        FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_session_labels_label ON session_labels(label);
+
+    CREATE TABLE IF NOT EXISTS exam_seats (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER NOT NULL,
+        student_id TEXT NOT NULL,
+        seat TEXT NOT NULL,
+        FOREIGN KEY (session_id) REFERENCES exam_sessions(id) ON DELETE CASCADE,
+        FOREIGN KEY (student_id) REFERENCES students(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_seats_student ON exam_seats(student_id);
+    CREATE INDEX IF NOT EXISTS idx_seats_session ON exam_seats(session_id);
+    `
+
+	if _, err := d.db.Exec(schema); err != nil {
+		log.Fatalf("❌ Error creating schema: %v", err)
 	}
 
 	// Enable WAL mode and other optimizations

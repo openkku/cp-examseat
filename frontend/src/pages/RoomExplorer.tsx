@@ -147,12 +147,22 @@ export const RoomExplorer: React.FC = () => {
         setOptRounds(validRounds);
         if (validRounds.length > 0) {
           const urlRound = searchParams.get('round');
-          const isValidRound = validRounds.some(r => r.id === urlRound);
-          if (urlRound && isValidRound) {
-            setRound(urlRound);
-          } else {
-            setRound(validRounds[0].id);
+          let savedRound = '';
+          try {
+            savedRound = localStorage.getItem('selected_round') || '';
+          } catch {}
+
+          let initialRound = validRounds[0].id;
+          if (urlRound && validRounds.some(r => r.id === urlRound)) {
+            initialRound = urlRound;
+          } else if (savedRound && validRounds.some(r => r.id === savedRound)) {
+            initialRound = savedRound;
           }
+
+          setRound(initialRound);
+          try {
+            localStorage.setItem('selected_round', initialRound);
+          } catch {}
         }
       })
       .catch(console.error);

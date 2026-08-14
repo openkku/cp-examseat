@@ -25,16 +25,29 @@ func Generate(seats []base.Seats) ([]byte, error) {
 			return tStr
 		}
 
-		var startStr, endStr string
-		parts := strings.Split(s.Time, "-")
-		if len(parts) == 2 {
-			startStr = cleanTime(parts[0])
-			endStr = cleanTime(parts[1])
+		dateStart := strings.TrimSpace(s.GetDate())
+		startStr := s.TimeStart
+		endStr := s.TimeEnd
+
+		if startStr == "" && s.Time != "" {
+			parts := strings.Split(s.Time, "-")
+			if len(parts) == 2 {
+				startStr = cleanTime(parts[0])
+				endStr = cleanTime(parts[1])
+			} else {
+				startStr = cleanTime(s.Time)
+			}
 		} else {
-			startStr = cleanTime(s.Time)
+			startStr = cleanTime(startStr)
+			endStr = cleanTime(endStr)
 		}
 
-		startTime, err := time.ParseInLocation("2006-01-02 15.04", s.Date+" "+startStr, bangkokLoc)
+		if dateStart == "" || startStr == "" {
+			// Skip event completely if no exam time specified
+			continue
+		}
+
+		startTime, err := time.ParseInLocation("2006-01-02 15.04", dateStart+" "+startStr, bangkokLoc)
 		if err != nil {
 			log.Printf("Error parsing start time: %v", err)
 			continue
@@ -65,10 +78,9 @@ func Generate(seats []base.Seats) ([]byte, error) {
 		}
 
 		if endStr != "" {
-			endTime, err := time.ParseInLocation("2006-01-02 15.04", s.Date+" "+endStr, bangkokLoc)
-			if err != nil {
-				log.Printf("Error parsing end time: %v", err)
-			} else {
+			endDate := dateStart
+			endTime, err := time.ParseInLocation("2006-01-02 15.04", endDate+" "+endStr, bangkokLoc)
+			if err == nil {
 				eventOpts = append(eventOpts, ikalendar.WithDtEnd(endTime))
 			}
 		}

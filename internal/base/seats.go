@@ -3,12 +3,15 @@ package base
 type Seats struct {
 	Sheet       string
 	Date        string
+	Time        string
+	TimeStart   string
+	TimeEnd     string
+	Category    string
 	Room        string
 	Subject     string
 	SubjectName string
 	Section     string
 	StudentID   string
-	Time        string
 	Seat        string
 	Note        string
 	ExamRound   string
@@ -16,6 +19,20 @@ type Seats struct {
 	Labels      []string
 	RoomLayout  string
 	CustomID    string
+}
+
+func (s *Seats) GetDate() string {
+	return s.Date
+}
+
+func (s *Seats) GetTime() string {
+	if s.TimeStart != "" {
+		if s.TimeEnd != "" {
+			return s.TimeStart + "-" + s.TimeEnd
+		}
+		return s.TimeStart
+	}
+	return s.Time
 }
 
 type SeatsOptions struct {

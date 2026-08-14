@@ -105,6 +105,22 @@ func parseJSONSeats(filePath string, roundID string, defaultLabels []string, roo
 		if seats[i].CustomID == "" && customID != "" {
 			seats[i].CustomID = customID
 		}
+		if seats[i].TimeStart == "" && seats[i].Time != "" {
+			parts := strings.Split(seats[i].Time, "-")
+			if len(parts) == 2 {
+				seats[i].TimeStart = strings.TrimSpace(parts[0])
+				seats[i].TimeEnd = strings.TrimSpace(parts[1])
+			} else {
+				seats[i].TimeStart = strings.TrimSpace(seats[i].Time)
+			}
+		}
+		if seats[i].Category == "" {
+			if seats[i].CustomID != "" {
+				seats[i].Category = "OUT_OF_SCHEDULE"
+			} else {
+				seats[i].Category = "IN_SCHEDULE"
+			}
+		}
 	}
 
 	return seats, nil

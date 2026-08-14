@@ -186,3 +186,175 @@ func TestGetOptionsCascadeFilter(t *testing.T) {
 		t.Errorf("Expected empty rooms slice for invalid room slot, got %v", invalidRooms)
 	}
 }
+
+func TestInVsOutOfScheduleCategory(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "test_cat.db")
+
+	db, err := sqlite.New(dbPath)
+	if err != nil {
+		t.Fatalf("Failed to create database: %v", err)
+	}
+	defer db.Close()
+
+	ctx := context.Background()
+	roundID := "test_cat_round"
+
+	seats := []database.Seats{
+		{
+			ExamRound: roundID,
+			StudentID: "111111111-1",
+			Date:      "2026-09-01",
+			Time:      "09.00-12.00",
+			Room:      "SC101",
+			Subject:   "CP1001",
+			Category:  "IN_SCHEDULE",
+		},
+		{
+			ExamRound: roundID,
+			StudentID: "222222222-2",
+			Date:      "2026-09-02",
+			Time:      "13.00-15.00",
+			Room:      "CP9421",
+			Subject:   "CP422021",
+			CustomID:  "MID_1_2569_CP422021_LEC",
+			Labels:    []string{"นัดสอบนอกตาราง"},
+		},
+	}
+
+	if err := db.AddRound(ctx, roundID, "Test Category", seats); err != nil {
+		t.Fatalf("AddRound failed: %v", err)
+	}
+
+	allSeats, err := db.GetAllSeats(ctx)
+	if err != nil {
+		t.Fatalf("GetAllSeats failed: %v", err)
+	}
+
+	if len(allSeats) != 2 {
+		t.Fatalf("Expected 2 seats, got %d", len(allSeats))
+	}
+
+	for _, s := range allSeats {
+		if s.Subject == "CP1001" && s.Category != "IN_SCHEDULE" {
+			t.Errorf("Expected CP1001 category IN_SCHEDULE, got %s", s.Category)
+		}
+		if s.Subject == "CP422021" && s.Category != "OUT_OF_SCHEDULE" {
+			t.Errorf("Expected CP422021 category OUT_OF_SCHEDULE, got %s", s.Category)
+		}
+	}
+}
+
+func TestPurgeRoundPreservesCustomSessions(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "test_purge.db")
+
+	db, err := sqlite.New(dbPath)
+	if err != nil {
+		t.Fatalf("Failed to create database: %v", err)
+	}
+	defer db.Close()
+
+	ctx := context.Background()
+	roundID := "purge_test_round"
+
+	seats := []database.Seats{
+		{
+			ExamRound: roundID,
+			StudentID: "100000000-1",
+			Date:      "2026-09-01",
+			Time:      "09.00-12.00",
+			Room:      "SC101",
+			Subject:   "CP1000",
+			Category:  "IN_SCHEDULE",
+		},
+		{
+			ExamRound: roundID,
+			StudentID: "200000000-2",
+			Date:      "2026-09-02",
+			Time:      "13.00-15.00",
+			Room:      "CP9421",
+			Subject:   "CP422021",
+			CustomID:  "CUSTOM_CP422021",
+			Category:  "OUT_OF_SCHEDULE",
+		},
+	}
+
+	if err := db.AddRound(ctx, roundID, "Purge Round", seats); err != nil {
+		t.Fatalf("AddRound failed: %v", err)
+	}
+
+	// Purge standard round
+	if err := db.PurgeRound(ctx, roundID); err != nil {
+		t.Fatalf("PurgeRound failed: %v", err)
+	}
+
+	// Only OUT_OF_SCHEDULE custom seat should remain
+	remaining, err := db.GetAllSeats(ctx)
+	if err != nil {
+		t.Fatalf("GetAllSeats failed: %v", err)
+	}
+
+	if len(remaining) != 1 {
+		t.Fatalf("Expected 1 custom seat remaining after PurgeRound, got %d", len(remaining))
+	}
+
+	if remaining[0].Subject != "CP422021" {
+		t.Errorf("Expected remaining seat subject CP422021, got %s", remaining[0].Subject)
+	}
+}
+
+func TestGetSeatsFilterCombination(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "test_filter.db")
+
+	db, err := sqlite.New(dbPath)
+	if err != nil {
+		t.Fatalf("Failed to create database: %v", err)
+	}
+	defer db.Close()
+
+	ctx := context.Background()
+	roundID := "filter_round"
+
+	seats := []database.Seats{
+		{
+			ExamRound: roundID,
+			StudentID: "11111",
+			Date:      "2026-10-01",
+			Time:      "08.30-11.30",
+			Room:      "SC201",
+			Seat:      "A01",
+			Subject:   "MATH101",
+		},
+		{
+			ExamRound: roundID,
+			StudentID: "22222",
+			Date:      "2026-10-01",
+			Time:      "08.30-11.30",
+			Room:      "SC201",
+			Seat:      "A02",
+			Subject:   "MATH101",
+		},
+	}
+
+	if err := db.AddRound(ctx, roundID, "Filter Round", seats); err != nil {
+		t.Fatalf("AddRound failed: %v", err)
+	}
+
+	seatOpt := "A02"
+	filtered, err := db.GetSeats(ctx, base.ExploreOptions{
+		Round: roundID,
+		Room:  "SC201",
+		Date:  "2026-10-01",
+		Time:  "08.30-11.30",
+		Seat:  &seatOpt,
+	})
+	if err != nil {
+		t.Fatalf("GetSeats failed: %v", err)
+	}
+
+	if len(filtered) != 1 || filtered[0].StudentID != "22222" {
+		t.Errorf("Expected single seat record for student 22222, got %v", filtered)
+	}
+}

@@ -4,8 +4,11 @@ package seater
 type ExamSchedule struct {
 	Sheet       string   `json:"sheet"`
 	ExamRound   string   `json:"exam_round,omitempty"`
+	Category    string   `json:"category,omitempty"`
 	Date        string   `json:"date"`
 	Time        string   `json:"time"`
+	TimeStart   string   `json:"time_start,omitempty"`
+	TimeEnd     string   `json:"time_end,omitempty"`
 	Room        string   `json:"room"`
 	Subject     string   `json:"subject"`
 	SubjectName string   `json:"subject_name"`

@@ -193,10 +193,10 @@ export const StudentSearch = () => {
   }, [saveToHistory]);
 
   const handleHistoryClick = (item: SearchHistoryItem) => {
-    setSelectedRound(item.roundId);
+    handleRoundChange(item.roundId);
     setStudentId(item.studentId);
     performSearch(item.studentId, item.roundId);
-    setSearchParams({ id: item.studentId });
+    setSearchParams({ id: item.studentId, round: item.roundId });
     setShowHistory(false);
   };
 
@@ -210,6 +210,18 @@ export const StudentSearch = () => {
     });
     navigate(`/explorer?${params.toString()}`);
   };
+
+  const handleRoundChange = useCallback((newRound: string) => {
+    setSelectedRound(newRound);
+    try {
+      localStorage.setItem('selected_round', newRound);
+    } catch {}
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newRound) next.set('round', newRound);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const hasRun = useRef<boolean>(false);
   // Fetch Config, Rounds, & Stats
@@ -227,13 +239,25 @@ export const StudentSearch = () => {
         const validRounds = Array.isArray(data) ? data : [];
         if (validRounds.length > 0) {
           setRounds(validRounds);
-          const defaultRoundId = validRounds[0].id;
-          setSelectedRound(defaultRoundId);
+          const urlRound = searchParams.get('round');
+          let savedRound = '';
+          try {
+            savedRound = localStorage.getItem('selected_round') || '';
+          } catch {}
+
+          let initialRound = validRounds[0].id;
+          if (urlRound && validRounds.some(r => r.id === urlRound)) {
+            initialRound = urlRound;
+          } else if (savedRound && validRounds.some(r => r.id === savedRound)) {
+            initialRound = savedRound;
+          }
+
+          setSelectedRound(initialRound);
 
           const urlId = searchParams.get('id');
           if (urlId) {
             setStudentId(urlId);
-            performSearch(urlId, defaultRoundId);
+            performSearch(urlId, initialRound);
           }
         }
       })
@@ -252,7 +276,12 @@ export const StudentSearch = () => {
 
   const handleManualSearch = () => {
     performSearch(studentId, selectedRound);
-    setSearchParams({ id: studentId });
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (studentId) next.set('id', studentId);
+      if (selectedRound) next.set('round', selectedRound);
+      return next;
+    });
     setShowHistory(false);
   };
 
@@ -311,7 +340,7 @@ export const StudentSearch = () => {
             <Select
               label="รอบการสอบ (Exam Round)"
               value={selectedRound}
-              onChange={(e) => setSelectedRound(e.target.value)}
+              onChange={(e) => handleRoundChange(e.target.value)}
               disabled={rounds.length === 0}
             >
               {rounds.length === 0 ? (
