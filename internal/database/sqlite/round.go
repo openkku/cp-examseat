@@ -22,8 +22,12 @@ func (d *Database) PurgeRound(ctx context.Context, roundID string) error {
 	if _, err := tx.ExecContext(ctx, "DELETE FROM subjects WHERE exam_round = ?", roundID); err != nil {
 		return fmt.Errorf("failed to clear existing subjects: %w", err)
 	}
-	if _, err := tx.ExecContext(ctx, "DELETE FROM round_info WHERE id = ?", roundID); err != nil {
-		return fmt.Errorf("failed to clear round metadata: %w", err)
+
+	var count int
+	if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM exam_sessions WHERE exam_round = ?", roundID).Scan(&count); err == nil && count == 0 {
+		if _, err := tx.ExecContext(ctx, "DELETE FROM round_info WHERE id = ?", roundID); err != nil {
+			return fmt.Errorf("failed to clear round metadata: %w", err)
+		}
 	}
 	err = tx.Commit()
 	if err != nil {
@@ -61,7 +65,7 @@ func (d *Database) AddRound(ctx context.Context, roundID string, displayName str
 	defer tx.Rollback()
 
 	// Save round metadata
-	if _, err := tx.ExecContext(ctx, "INSERT OR REPLACE INTO round_info (id, label) VALUES (?, ?)", roundID, displayName); err != nil {
+	if _, err := tx.ExecContext(ctx, "INSERT INTO round_info (id, label) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET label = excluded.label", roundID, displayName); err != nil {
 		return fmt.Errorf("failed to save round metadata: %w", err)
 	}
 
@@ -99,7 +103,7 @@ func (d *Database) AddRound(ctx context.Context, roundID string, displayName str
 	defer stmtSeat.Close()
 
 	stmtSubject, err := tx.PrepareContext(ctx, `
-		INSERT OR REPLACE INTO subjects (id, exam_round, name) VALUES (?, ?, ?)
+		INSERT INTO subjects (id, exam_round, name) VALUES (?, ?, ?) ON CONFLICT(id, exam_round) DO UPDATE SET name = excluded.name
 	`)
 	if err != nil {
 		return fmt.Errorf("failed to prepare insert subject statement: %w", err)

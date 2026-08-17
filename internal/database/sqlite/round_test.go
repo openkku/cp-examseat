@@ -358,3 +358,45 @@ func TestGetSeatsFilterCombination(t *testing.T) {
 		t.Errorf("Expected single seat record for student 22222, got %v", filtered)
 	}
 }
+
+func TestForeignKeyConstraints(t *testing.T) {
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "test_fk.db")
+
+	db, err := sqlite.New(dbPath)
+	if err != nil {
+		t.Fatalf("Failed to create database: %v", err)
+	}
+	defer db.Close()
+
+	ctx := context.Background()
+	validRound := "mid_1_2569"
+
+	// Insert valid round first
+	seats := []database.Seats{
+		{
+			ExamRound: validRound,
+			StudentID: "123456789-0",
+			Date:      "2026-08-29",
+			Time:      "13.00-16.00",
+			Room:      "CP9226",
+			Subject:   "CP421025",
+		},
+	}
+	if err := db.AddRound(ctx, validRound, "กลางภาค 1/2569", seats); err != nil {
+		t.Fatalf("AddRound failed for valid round: %v", err)
+	}
+
+	// Purge round info to test ON DELETE CASCADE constraint
+	if err := db.PurgeRound(ctx, validRound); err != nil {
+		t.Fatalf("PurgeRound failed: %v", err)
+	}
+
+	allSeats, err := db.GetAllSeats(ctx)
+	if err != nil {
+		t.Fatalf("GetAllSeats failed: %v", err)
+	}
+	if len(allSeats) != 0 {
+		t.Fatalf("Expected 0 seats after purging round info, got %d", len(allSeats))
+	}
+}
